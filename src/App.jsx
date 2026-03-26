@@ -1,15 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+// 👇 Notice the updated path here:
+import ProtectedRoute from './router/ProtectedRoute'; 
+
+const LoginPlaceholder = () => <div className="p-10 text-2xl text-blue-500">Login Page (Public)</div>;
+const DashboardPlaceholder = () => <div className="p-10 text-2xl text-green-500">Dashboard (Protected!)</div>;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const mockSession = null; 
 
   return (
-   <h1 className="text-3xl font-bold text-blue-500">Tailwind is working!</h1>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPlaceholder />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute session={mockSession}>
+              <DashboardPlaceholder />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
