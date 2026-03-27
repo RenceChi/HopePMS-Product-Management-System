@@ -1,16 +1,51 @@
-# React + Vite
+# Hope, Inc. Product Management System (HopePMS)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🚀 Local Setup Instructions
+[cite_start]To get this project running on your local machine, please follow these steps carefully:
 
-Currently, two official plugins are available:
+1. **Clone the repository:**
+   \`\`\`bash
+   git clone <paste-your-repo-link-here>
+   cd <your-repo-folder-name>
+   \`\`\`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+2. **Install dependencies:**
+   \`\`\`bash
+   npm install
+   \`\`\`
 
-## React Compiler
+3. **Configure Environment Variables:**
+   * Ask the Project Lead (M1) for the Supabase Project URL and Anon Key.
+   * Create a file named `.env` in the root folder.
+   * Add the following lines:
+     \`\`\`env
+     VITE_SUPABASE_URL=your_supabase_url_here
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+     \`\`\`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+4. **Run the local development server:**
+   \`\`\`bash
+   npm run dev
+   \`\`\`
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🌿 Git Workflow & Branching Strategy
+
+**RULE: Never commit directly to `main` or `dev`.** All work must follow this flow: `feature branch` → `Pull Request` → `dev`.
+
+### Branch Naming Convention
+[cite_start]When creating a new branch from `dev`, you must use one of the following prefixes:
+* \`feat/\`: New feature (e.g., `feat/auth-google-oauth`)
+* \`fix/\`: Bug fix (e.g., `fix/login-guard-redirect`)
+* \`db/\`: Database or migration change (e.g., `db/rls-product-policy`)
+* \`test/\`: Test files only
+* \`docs/\`: Documentation updates
+* \`refactor/\`: Code cleanup (no logic change)
+* \`chore/\`: Config, tooling, dependencies
+
+### Pull Request Expectations
+* [cite_start]**Titles:** Must be in the imperative mood and under 72 characters [cite: 64, 65] (e.g., "Add soft-delete RLS policy for product table").
+* **Descriptions:** Must clearly state What changed, Why it was needed, and How to test it.
+* **Reviews:** Every PR must be reviewed and approved by at least one other team member before merging into `dev`.
+* 
