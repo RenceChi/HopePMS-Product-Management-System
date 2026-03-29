@@ -1,29 +1,39 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-// 👇 Notice the updated path here:
-import ProtectedRoute from './router/ProtectedRoute'; 
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './router/ProtectedRoute'
+import AppLayout from './components/layout/AppLayout'
 
-const LoginPlaceholder = () => <div className="p-10 text-2xl text-blue-500">Login Page (Public)</div>;
-const DashboardPlaceholder = () => <div className="p-10 text-2xl text-green-500">Dashboard (Protected!)</div>;
+import LoginPage from './pages/auth/LoginPage'
+import AuthCallbackPage from './pages/auth/AuthCallbackPage'
+import DashboardPage from './pages/DashboardPage'
 
 function App() {
-  const mockSession = null; 
-
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPlaceholder />} />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute session={mockSession}>
-              <DashboardPlaceholder />
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+          {/* Protected routes — all wrapped in AppLayout */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            {/* Add more protected routes here in future sprints */}
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  )
 }
 
-export default App;
+export default App
