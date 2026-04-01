@@ -1,6 +1,6 @@
 # Hope, Inc. Product Management System (HopePMS)
 
-## 🚀 Local Setup Instructions
+## Local Setup Instructions
 To get this project running on your local machine, please follow these steps carefully:
 
 1. **Clone the repository:**
@@ -34,19 +34,19 @@ To get this project running on your local machine, please follow these steps car
 
 ---
 
-## 🌿 Git Workflow & Branching Strategy
+## Git Workflow & Branching Strategy
 
 **RULE: Never commit directly to `main` or `dev`.** All work must follow this flow: `feature branch` → `Pull Request` → `dev`.
 
 ### Branch Naming Convention
 When creating a new branch from `dev`, you must use one of the following prefixes:
-* feat/: New feature (e.g., `feat/auth-google-oauth`)
-* fix/: Bug fix (e.g., `fix/login-guard-redirect`)
-* db/: Database or migration change (e.g., `db/rls-product-policy`)
-* test/: Test files only
-* docs/: Documentation updates
-* refactor/: Code cleanup (no logic change)
-* chore/: Config, tooling, dependencies
+* `feat/`: New feature (e.g., `feat/auth-google-oauth`)
+* `fix/`: Bug fix (e.g., `fix/login-guard-redirect`)
+* `db/`: Database or migration change (e.g., `db/rls-product-policy`)
+* `test/`: Test files only
+* `docs/`: Documentation updates
+* `refactor/`: Code cleanup (no logic change)
+* `chore/`: Config, tooling, dependencies
 
 ### Pull Request Expectations
 * **Titles:** Must be in the imperative mood and under 72 characters (e.g., "Add soft-delete RLS policy for product table").
