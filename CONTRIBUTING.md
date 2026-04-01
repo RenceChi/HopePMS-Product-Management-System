@@ -20,7 +20,8 @@ To get this project running on your local machine, please follow these steps car
    * Ask the Project Lead (M1) for the Supabase Project URL and Anon Key.
    * Create a file named `.env` in the root folder.
    * Add the following lines:
-     ```env
+     ```
+     env
      VITE_SUPABASE_URL=your_supabase_url_here
      VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
      ```
