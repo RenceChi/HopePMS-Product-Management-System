@@ -132,7 +132,7 @@ export default function AuthPage() {
     setLoading(true); setMsg({ type: '', text: '' });
     const { error } = await supabase.auth.signUp({
       email: regData.email, password: regData.password,
-      options: { data: { username: regData.username, firstname: regData.firstname, lastname: regData.lastname } },
+      options: { data: { username: regData.username, firstName: regData.firstname, lastName: regData.lastname } },
     });
     setLoading(false);
     if (error) setMsg({ type: 'error', text: error.message });
