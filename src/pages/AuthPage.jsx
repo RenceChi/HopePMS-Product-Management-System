@@ -59,7 +59,7 @@ const Field = ({ label, type = 'text', placeholder, value, onChange, error, extr
 };
 
 const GoogleIcon = () => (
-  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -159,7 +159,7 @@ export default function AuthPage() {
       }}>
 
       {/* ══ DESKTOP CARD ══ */}
-      <div className="relative w-full max-w-[720px] rounded-3xl overflow-hidden hidden md:block"
+      <div className="relative w-full max-w-180 rounded-3xl overflow-hidden hidden md:block"
         style={{
           minHeight: '520px', /* ← increased from 480px for more breathing room */
           background: '#edeeed',
@@ -293,13 +293,13 @@ export default function AuthPage() {
             background: 'linear-gradient(150deg, #3d6b1e 0%, #31511E 55%, #1e3512 100%)',
           }}
         >
-          <div className="absolute top-[-60px] right-[-60px] w-56 h-56 rounded-full"
+          <div className="absolute -top-15 -right-15 w-56 h-56 rounded-full"
             style={{ background: 'rgba(133,159,61,0.13)' }} />
-          <div className="absolute bottom-[-40px] left-[-40px] w-48 h-48 rounded-full"
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full"
             style={{ background: 'rgba(133,159,61,0.09)' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full"
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-75 h-75 rounded-full"
             style={{ border: '1px solid rgba(133,159,61,0.09)' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[190px] h-[190px] rounded-full"
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-47.5 h-47.5 rounded-full"
             style={{ border: '1px solid rgba(133,159,61,0.07)' }} />
 
           <div className="relative z-10 h-full flex flex-col items-center justify-center px-7 text-center gap-3">
@@ -363,11 +363,11 @@ export default function AuthPage() {
         <div className="flex flex-col rounded-3xl overflow-hidden"
           style={{ background: '#edeeed', boxShadow: '0 24px 80px rgba(26, 26, 25, 0.32)' }}>
           {/* compact green header */}
-          <div className="relative flex items-center justify-center gap-1 py-5 px-6 flex-shrink-0"
+          <div className="relative flex items-center justify-center gap-1 py-5 px-6 shrink-0"
             style={{ background: 'linear-gradient(150deg, #3d6b1e 0%, #31511E 100%)' }}>
-            <div className="absolute top-[-20px] right-[-20px] w-24 h-24 rounded-full"
+            <div className="absolute -top-5 -right-5 w-24 h-24 rounded-full"
               style={{ background: 'rgba(133,159,61,0.12)' }} />
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: 'rgba(133,159,61,0.2)', border: '1px solid rgba(133,159,61,0.3)' }}>
               <svg className="w-5 h-5" style={{ color: '#a8c44a' }} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M3 3h7v7H3zm11 0h7v7h-7zm0 11h7v7h-7zM3 14l3.5-3.5L10 14l-3.5 3.5z" />
@@ -489,7 +489,7 @@ export default function AuthPage() {
         </div>
 
         {/* ══ MOBILE FOOTER ══ */}
-        <div className="flex-shrink-0 flex flex-col items-center gap-1 py-1 px-1 mt-10">
+        <div className="shrink-0 flex flex-col items-center gap-1 py-1 px-1 mt-10">
           <p className="text-[10px]" style={{ color: 'rgba(49,81,30,0.25)' }}>
             © {new Date().getFullYear()} Hope, Inc. All rights reserved.
           </p>
