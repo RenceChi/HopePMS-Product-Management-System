@@ -29,7 +29,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
 
   return (
     <header
-      className="flex items-center gap-3 px-4 flex-shrink-0 relative z-[100]"
+      className="flex items-center gap-3 px-4 shrink-0 relative z-100"
       style={{
         height: 60,
         background: '#31511E',
@@ -40,7 +40,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
       <button
         onClick={onMenuToggle}
         aria-label="Toggle sidebar"
-        className="w-[38px] h-[38px] rounded-[10px] border-none bg-transparent cursor-pointer flex flex-col items-center justify-center gap-[5px] flex-shrink-0 p-0 transition-colors hover:bg-[rgba(133,159,61,0.25)]"
+        className="w-9.5 h-9.5 rounded-[10px] border-none bg-transparent cursor-pointer flex flex-col items-center justify-center gap-1.25 shrink-0 p-0 transition-colors hover:bg-[rgba(133,159,61,0.25)]"
       >
         <span
           className="block w-5 h-0.5 rounded-sm transition-transform duration-300"
@@ -66,7 +66,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
       </button>
 
       {/* ── Brand ── */}
-      <div className="flex items-center gap-2.5 flex-shrink-0">
+      <div className="flex items-center gap-2.5 shrink-0">
         <div
           className="w-8 h-8 rounded-[9px] flex items-center justify-center"
           style={{ background: '#859F3D' }}
@@ -96,7 +96,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
 
       {/* ── Notification Bell ── */}
       <button
-        className="w-9 h-9 rounded-[9px] border-none bg-transparent cursor-pointer flex items-center justify-center relative flex-shrink-0 transition-all"
+        className="w-9 h-9 rounded-[9px] border-none bg-transparent cursor-pointer flex items-center justify-center relative shrink-0 transition-all"
         style={{ color: 'rgba(246,252,223,0.6)' }}
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(133,159,61,0.2)'; e.currentTarget.style.color = '#F6FCDF'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(246,252,223,0.6)'; }}
@@ -106,19 +106,19 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
         <span
-          className="absolute top-[7px] right-[7px] w-[7px] h-[7px] rounded-full border-[1.5px]"
+          className="absolute top-1.75 right-1.75 w-1.75 h-1.75 rounded-full border-[1.5px]"
           style={{ background: '#859F3D', borderColor: '#31511E' }}
         />
       </button>
 
       {/* ── Avatar + Dropdown ── */}
-      <div className="relative flex-shrink-0" ref={dropRef}>
+      <div className="relative shrink-0" ref={dropRef}>
         <button
           onClick={() => setDropOpen(o => !o)}
           className="flex items-center gap-2 py-1 pr-2 pl-1 rounded-full border-none bg-transparent cursor-pointer transition-colors hover:bg-[rgba(133,159,61,0.2)]"
         >
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
             style={{ background: 'linear-gradient(135deg, #859F3D, #4a7a22)' }}
           >
             {initials}
@@ -140,7 +140,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
 
         {dropOpen && (
           <div
-            className="absolute right-0 w-[210px] bg-white rounded-2xl overflow-hidden z-[200]"
+            className="absolute right-0 w-52.5 bg-white rounded-2xl overflow-hidden z-200"
             style={{
               top: 'calc(100% + 8px)',
               boxShadow: '0 8px 32px rgba(26,26,25,0.14)',
@@ -158,7 +158,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
             ].map(item => (
               <button
                 key={item.label}
-                className="w-full px-4 py-[11px] flex items-center gap-2.5 text-[13px] text-[#1A1A19] bg-none border-none cursor-pointer text-left transition-colors hover:bg-[rgba(133,159,61,0.08)]"
+                className="w-full px-4 py-2.75 flex items-center gap-2.5 text-[13px] text-[#1A1A19] bg-none border-none cursor-pointer text-left transition-colors hover:bg-[rgba(133,159,61,0.08)]"
               >
                 <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
                 {item.label}
@@ -169,7 +169,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
 
             <button
               onClick={handleLogout}
-              className="w-full px-4 py-[11px] flex items-center gap-2.5 text-[13px] text-red-600 bg-none border-none cursor-pointer text-left transition-colors hover:bg-red-50"
+              className="w-full px-4 py-2.75 flex items-center gap-2.5 text-[13px] text-red-600 bg-none border-none cursor-pointer text-left transition-colors hover:bg-red-50"
             >
               <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>

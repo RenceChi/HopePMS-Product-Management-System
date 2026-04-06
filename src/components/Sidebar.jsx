@@ -52,13 +52,13 @@ export default function Sidebar({ open, isMobile, onClose }) {
         {open && (
           <div
             onClick={onClose}
-            className="fixed inset-0 z-[200]"
+            className="fixed inset-0 z-200"
             style={{ background: 'rgba(0,0,0,0.45)' }}
           />
         )}
         {/* Drawer */}
         <div
-          className="fixed top-[60px] left-0 w-60 flex flex-col overflow-hidden z-[201] transition-transform duration-300"
+          className="fixed top-15 left-0 w-60 flex flex-col overflow-hidden z-201 transition-transform duration-300"
           style={{
             height: 'calc(100vh - 60px)',
             background: 'white',
@@ -77,7 +77,7 @@ export default function Sidebar({ open, isMobile, onClose }) {
   // Desktop: inline collapsible sidebar
   return (
     <div
-      className="flex flex-col flex-shrink-0 overflow-hidden transition-all duration-300"
+      className="flex flex-col shrink-0 overflow-hidden transition-all duration-300"
       style={{
         width: open ? 232 : 0,
         minWidth: open ? 232 : 0,
@@ -96,8 +96,8 @@ function SidebarContent({ onClose, isMobile }) {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3.5 flex flex-col gap-[18px]
-        [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:bg-[rgba(133,159,61,0.2)] [&::-webkit-scrollbar-thumb]:rounded">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3.5 flex flex-col gap-4.5
+        [&::-webkit-scrollbar]:w-0.75 [&::-webkit-scrollbar-thumb]:bg-[rgba(133,159,61,0.2)] [&::-webkit-scrollbar-thumb]:rounded">
         {navGroups.map(group => (
           <div key={group.section}>
             <p className="text-[9px] font-bold tracking-[0.2em] uppercase px-2 mb-1 whitespace-nowrap"
@@ -122,7 +122,7 @@ function SidebarContent({ onClose, isMobile }) {
                     color: isActive ? '#F6FCDF' : 'rgba(26,26,25,0.55)',
                   })}
                 >
-                  <span className="flex-shrink-0 flex">{item.icon}</span>
+                  <span className="shrink-0 flex">{item.icon}</span>
                   {item.label}
                 </NavLink>
               ))}
@@ -133,10 +133,10 @@ function SidebarContent({ onClose, isMobile }) {
 
       {/* Footer */}
       <div
-        className="px-4 py-3 flex items-center gap-2 whitespace-nowrap overflow-hidden flex-shrink-0"
+        className="px-4 py-3 flex items-center gap-2 whitespace-nowrap overflow-hidden shrink-0"
         style={{ borderTop: '1px solid rgba(133,159,61,0.1)' }}
       >
-        <div className="w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: '#859F3D' }} />
+        <div className="w-1.25 h-1.25 rounded-full shrink-0" style={{ background: '#859F3D' }} />
         <span className="text-[9px] tracking-[0.12em] uppercase" style={{ color: 'rgba(133,159,61,0.4)' }}>
           Hope PMS v1.0
         </span>
