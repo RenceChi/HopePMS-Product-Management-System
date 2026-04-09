@@ -1,6 +1,7 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../db/supabase';
+import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 /* ─── reusable field ─────────────────────────────── */
 const Field = ({ label, type = 'text', placeholder, value, onChange, error, extra }) => {
@@ -71,6 +72,8 @@ const GoogleIcon = () => (
 export default function AuthPage() {
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+
   const [mode, setMode] = useState('login');
   const [isAnimating, setIsAnimating] = useState(false);
   const [panelOnRight, setPanelOnRight] = useState(false);
@@ -83,6 +86,12 @@ export default function AuthPage() {
   const [loginErr, setLoginErr] = useState({});
   const [regData, setRegData] = useState({ firstname: '', lastname: '', username: '', email: '', password: '', confirm: '' });
   const [regErr, setRegErr] = useState({});
+
+  useEffect(() => {
+  if (searchParams.get('error') === 'inactive') {
+    setMsg({ type: 'error', text: 'Your account is pending approval. Please contact your administrator.' });
+    }
+  }, []);
 
   const switchMode = (to) => {
     if (to === mode || isAnimating) return;
@@ -104,6 +113,7 @@ export default function AuthPage() {
     if (!loginData.password) e.password = 'Password is required';
     setLoginErr(e); return !Object.keys(e).length;
   };
+
   const validateReg = () => {
     const e = {};
     if (!regData.firstname.trim()) e.firstname = 'Required';
@@ -117,15 +127,22 @@ export default function AuthPage() {
     setRegErr(e); return !Object.keys(e).length;
   };
 
+  /* Handle form submissions */
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!validateLogin()) return;
+
     setLoading(true); setMsg({ type: '', text: '' });
+
     const { error } = await supabase.auth.signInWithPassword({ email: loginData.email, password: loginData.password });
     setLoading(false);
+
     if (error) setMsg({ type: 'error', text: error.message });
     else navigate('/dashboard');
+
   };
+
+
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!validateReg()) return;
