@@ -13,13 +13,26 @@ export default function AuthCallback() {
   useEffect(() => {
     // Supabase automatically parses the URL hash on page load.
     // We just wait for the session to be established, then redirect.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        navigate('/dashboard', { replace: true });
-      } else if (event === 'SIGNED_OUT') {
-        navigate('/login', { replace: true });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => 
+  {
+      if (event === 'SIGNED_IN' && session) 
+    {
+    // Check record_status before allowing access
+    const { data, error } = await supabase
+      .from('users')
+      .select('record_status')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !data || data.record_status !== 'ACTIVE') 
+      {
+      await supabase.auth.signOut();
+      navigate('/login?error=inactive', { replace: true });
+      } else {
+      navigate('/dashboard', { replace: true });
       }
-    });
+    }
+  });
 
     // Fallback: check current session in case the event already fired
     supabase.auth.getSession().then(({ data: { session } }) => {
