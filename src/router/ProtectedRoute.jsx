@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children, session }) => {
     if (!session) { setStatus('no-session'); return; }
 
     supabase
-      .from('users')
+      .from('user')
       .select('record_status')
       .eq('id', session.user.id)
       .single()
