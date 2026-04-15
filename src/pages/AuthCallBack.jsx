@@ -35,12 +35,22 @@ export default function AuthCallback() {
   });
 
     // Fallback: check current session in case the event already fired
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/dashboard', { replace: true });
-    });
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+  if (session) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('record_status')
+      .eq('id', session.user.id)
+      .single();
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (error || !data || data.record_status !== 'ACTIVE') {
+      await supabase.auth.signOut();
+      navigate('/login?error=inactive', { replace: true });
+    } else {
+      navigate('/dashboard', { replace: true });
+    }
+  }
+});
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#eeeeee8f]"
@@ -89,3 +99,4 @@ export default function AuthCallback() {
     </div>
   );
 }
+  );}
