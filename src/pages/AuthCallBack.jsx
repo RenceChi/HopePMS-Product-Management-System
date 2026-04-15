@@ -19,7 +19,7 @@ export default function AuthCallback() {
     {
     // Check record_status before allowing access
     const { data, error } = await supabase
-      .from('users')
+      .from('user')
       .select('record_status')
       .eq('id', session.user.id)
       .single();
