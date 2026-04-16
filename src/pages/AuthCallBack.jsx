@@ -13,21 +13,44 @@ export default function AuthCallback() {
   useEffect(() => {
     // Supabase automatically parses the URL hash on page load.
     // We just wait for the session to be established, then redirect.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        navigate('/dashboard', { replace: true });
-      } else if (event === 'SIGNED_OUT') {
-        navigate('/login', { replace: true });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => 
+  {
+      if (event === 'SIGNED_IN' && session) 
+    {
+    // Check record_status before allowing access
+    const { data, error } = await supabase
+      .from('user')
+      .select('record_status')
+      .eq('userId', session.user.id)
+      .single();
+
+    if (error || !data || data.record_status !== 'ACTIVE') 
+      {
+      await supabase.auth.signOut();
+      navigate('/login?error=inactive', { replace: true });
+      } else {
+      navigate('/dashboard', { replace: true });
       }
-    });
+    }
+  });
 
     // Fallback: check current session in case the event already fired
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate('/dashboard', { replace: true });
-    });
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+  if (session) {
+    const { data, error } = await supabase
+      .from('user')
+      .select('record_status')
+      .eq('userId', session.user.id)
+      .single();
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (error || !data || data.record_status !== 'ACTIVE') {
+      await supabase.auth.signOut();
+      navigate('/login?error=inactive', { replace: true });
+    } else {
+      navigate('/dashboard', { replace: true });
+    }
+  }
+});
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#eeeeee8f]"
@@ -76,3 +99,4 @@ export default function AuthCallback() {
     </div>
   );
 }
+  );}
