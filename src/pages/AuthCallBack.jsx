@@ -21,7 +21,7 @@ export default function AuthCallback() {
     const { data, error } = await supabase
       .from('user')
       .select('record_status')
-      .eq('id', session.user.id)
+      .eq('userId', session.user.id)
       .single();
 
     if (error || !data || data.record_status !== 'ACTIVE') 
@@ -38,9 +38,9 @@ export default function AuthCallback() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
   if (session) {
     const { data, error } = await supabase
-      .from('users')
+      .from('user')
       .select('record_status')
-      .eq('id', session.user.id)
+      .eq('userId', session.user.id)
       .single();
 
     if (error || !data || data.record_status !== 'ACTIVE') {
