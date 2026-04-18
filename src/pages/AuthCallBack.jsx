@@ -7,51 +7,56 @@ import { supabase } from '../db/supabase';
  * Handles the redirect after OAuth (e.g. Google Sign-In).
  * Place this at route: /auth/callback
  */
-export default function AuthCallback() {
+export default function AuthCallBack() {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Supabase automatically parses the URL hash on page load.
     // We just wait for the session to be established, then redirect.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => 
-  {
-      if (event === 'SIGNED_IN' && session) 
-    {
-    // Check record_status before allowing access
-    const { data, error } = await supabase
-      .from('user')
-      .select('record_status')
-      .eq('userId', session.user.id)
-      .single();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Check record_status before allowing access
+        const { data, error } = await supabase
+          .from('user')
+          .select('record_status')
+          .eq('userid', session.user.id)
+          .single();
 
-    if (error || !data || data.record_status !== 'ACTIVE') 
-      {
-      await supabase.auth.signOut();
-      navigate('/login?error=inactive', { replace: true });
-      } else {
-      navigate('/dashboard', { replace: true });
+        if (error || !data || data.record_status !== 'ACTIVE') {
+          await supabase.auth.signOut();
+          navigate('/login?error=inactive', { replace: true });
+        } else {
+          // Bug #3 Fixed: Route to /products instead of /dashboard
+          navigate('/products', { replace: true });
+        }
       }
-    }
-  });
+    });
 
     // Fallback: check current session in case the event already fired
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-  if (session) {
-    const { data, error } = await supabase
-      .from('user')
-      .select('record_status')
-      .eq('userId', session.user.id)
-      .single();
+      if (session) {
+        const { data, error } = await supabase
+          .from('user')
+          .select('record_status')
+          .eq('userid', session.user.id)
+          .single();
 
-    if (error || !data || data.record_status !== 'ACTIVE') {
-      await supabase.auth.signOut();
-      navigate('/login?error=inactive', { replace: true });
-    } else {
-      navigate('/dashboard', { replace: true });
-    }
-  }
-});
+        if (error || !data || data.record_status !== 'ACTIVE') {
+          await supabase.auth.signOut();
+          navigate('/login?error=inactive', { replace: true });
+        } else {
+          // Bug #3 Fixed: Route to /products instead of /dashboard
+          navigate('/products', { replace: true });
+        }
+      }
+    });
 
+    // Bug #2 Fixed: Proper cleanup function to prevent memory leaks
+    return () => subscription.unsubscribe();
+    
+  }, [navigate]); // Bug #2 Fixed: Added dependency array
+
+  // Bug #1 Fixed: JSX is now safely outside the useEffect block
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#eeeeee8f]"
       style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #859F3D12 0%, transparent 60%)' }}>
@@ -99,4 +104,3 @@ export default function AuthCallback() {
     </div>
   );
 }
-  );}

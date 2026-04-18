@@ -1,53 +1,50 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { supabase } from './db/supabase';
+import { useAuth } from './context/AuthContext'; // ✅ Consume context instead of Supabase directly
 
 import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
-import AuthCallback from './pages/AuthCallBack';
+import AuthCallBack from './pages/AuthCallBack'; // ✅ Using the Vercel-safe capitalized name!
 import MainLayout from './components/MainLayout';
 
 /* ── placeholder pages (replace with real ones later) ── */
-const Dashboard = () => (
+const ProductsPage = () => (
   <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Dashboard</h1>
-    <p className="text-xs text-[#859F3D]">Welcome to Hope PMS.</p>
+    <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
+    <p className="text-xs text-[#859F3D]">Welcome to Hope PMS Products.</p>
   </div>
 );
 
 function App() {
-  const [session, setSession] = useState(undefined); // undefined = loading
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => subscription.unsubscribe();
-  }, []);
+  // ✅ Bug #6 Fixed: Consume global auth state instead of running a duplicate listener
+  const { session, loading } = useAuth();
 
   // While checking auth state, show nothing (or a spinner)
-  if (session === undefined) return null;
+  if (loading) return null;
 
   return (
     <BrowserRouter>
       <Routes>
         {/* public */}
         <Route path="/login" element={<AuthPage />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/callback" element={<AuthCallBack />} />
 
         {/* protected */}
         <Route
-          path="/dashboard"
+          path="/products"
           element={
-            <ProtectedRoute session={session}>
-              <MainLayout user={session?.user}>
-                <Dashboard />
+            // ✅ Bug #7 Fixed: Removed 'session={session}' prop. 
+            // ProtectedRoute will read directly from AuthContext now.
+            <ProtectedRoute>
+              {/* Removed user={session?.user} prop. MainLayout should also use useAuth() internally! */}
+              <MainLayout>
+                <ProductsPage />
               </MainLayout>
             </ProtectedRoute>
           }
         />
 
         {/* fallback */}
-        <Route path="*" element={<Navigate to={session ? '/dashboard' : '/login'} replace />} />
+        <Route path="*" element={<Navigate to={session ? '/products' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
   );
