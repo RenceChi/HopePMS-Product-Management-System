@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children, session }) => {
     supabase
       .from('user')
       .select('record_status')
-      .eq('id', session.user.id)
+      .eq('userid', session.user.id)
       .single()
       .then(({ data, error }) => {
         if (error || !data) { setStatus('inactive'); return; }
