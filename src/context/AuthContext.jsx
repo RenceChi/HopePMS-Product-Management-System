@@ -13,41 +13,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ Bug #5 Fixed: Helper function to fetch and merge custom user data
     const fetchAndMergeUser = async (currentSession) => {
       if (!currentSession?.user) {
         setCurrentUser(null);
+        setLoading(false); // ✅ Always resolve loading even with no session
         return;
       }
 
-      const { data: userRow, error } = await supabase
-        .from('user')
-        .select('userid, username, firstname, lastname, user_type, record_status')
-        .eq('userid', currentSession.user.id)
-        .single();
+      try {
+        const { data: userRow, error } = await supabase
+          .from('user')
+          .select('userid, username, firstname, lastname, user_type, record_status')
+          .eq('userid', currentSession.user.id)
+          .single();
 
-      if (error) {
-        console.error("Error fetching custom user details:", error);
-        setCurrentUser(currentSession.user); // Fallback to just the auth object
-      } else {
-        // Spread both objects together into one powerful currentUser
-        setCurrentUser({ ...currentSession.user, ...userRow });
+        if (error || !userRow) {
+          console.error("Error fetching user row:", error);
+          setCurrentUser(currentSession.user); // Fallback to auth object
+        } else {
+          setCurrentUser({ ...currentSession.user, ...userRow });
+        }
+      } catch (err) {
+        console.error("fetchAndMergeUser threw:", err);
+        setCurrentUser(currentSession.user); // Never leave user stranded
+      } finally {
+        setLoading(false); // ✅ ALWAYS fires — app never stays blank
       }
     };
 
-    // 1. Check the initial session on page load
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // 1. Check initial session on page load
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      await fetchAndMergeUser(session);
-      setLoading(false);
+      fetchAndMergeUser(session);
     });
 
-    // 2. Listen for active login/logout events
+    // 2. Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
-        await fetchAndMergeUser(session);
-        setLoading(false);
+        fetchAndMergeUser(session);
       }
     );
 
@@ -56,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ currentUser, session, loading }}>
-      {!loading && children}
+      {children} {/* ✅ Always renders — loading state handled in App.jsx */}
     </AuthContext.Provider>
   );
 };
