@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
       const { data: userRow, error } = await supabase
         .from('user')
-        .select('userid, username, firstName, lastName, user_type, record_status')
+        .select('userid, username, firstname, lastname, user_type, record_status')
         .eq('userid', currentSession.user.id)
         .single();
 
