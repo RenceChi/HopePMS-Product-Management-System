@@ -4,7 +4,7 @@ import { supabase } from './db/supabase';
 
 import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
-import AuthCallback from './pages/AuthCallback';
+import AuthCallback from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
 
 /* ── placeholder pages (replace with real ones later) ── */
