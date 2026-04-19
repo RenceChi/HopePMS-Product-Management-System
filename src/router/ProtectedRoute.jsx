@@ -1,30 +1,24 @@
 import { Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../db/supabase';
 
-const ProtectedRoute = ({ children, session }) => {
-  const [status, setStatus] = useState('checking');
+const ProtectedRoute = ({ children }) => {
+  // ✅ Read directly from our global context
+  const { currentUser, loading } = useAuth();
 
-  useEffect(() => {
-    if (!session) { setStatus('no-session'); return; }
+  // Wait for the context to finish fetching
+  if (loading) return null;
 
-    supabase
-      .from('user')
-      .select('record_status')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data, error }) => {
-        if (error || !data) { setStatus('inactive'); return; }
-        setStatus(data.record_status === 'ACTIVE' ? 'active' : 'inactive');
-      });
-  }, [session]);
+  // No user logged in? Send to login.
+  if (!currentUser) return <Navigate to="/login" replace />;
 
-  if (status === 'checking') return null;
-  if (status === 'no-session') return <Navigate to="/login" replace />;
-  if (status === 'inactive') {
+  // User is logged in, but their account isn't activated yet? Kick them out.
+  if (currentUser.record_status !== 'ACTIVE') {
     supabase.auth.signOut();
     return <Navigate to="/login?error=inactive" replace />;
   }
+
+  // If they pass all checks, render the page!
   return children;
 };
 
