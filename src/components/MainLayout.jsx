@@ -35,6 +35,7 @@ export default function MainLayout({ children, user }) {
           {children}
         </main>
       </div>
+      
     </div>
   );
 }
