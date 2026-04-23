@@ -6,6 +6,7 @@ import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack'; 
 import MainLayout from './components/MainLayout';
+import RightsDebugger from './test/RightsDebugger';
 
 /* ── placeholder pages ── */
 const ProductsPage = () => (
@@ -38,7 +39,7 @@ const DeletedItemsPage = () => (
 
 function App() {
   const { currentUser, loading } = useAuth();
-  const { canAccessAdmin, canViewDeleted } = useRights(); // ✅ Pull permissions from context
+  const { canAccessAdmin, canViewDeleted, rightsLoading } = useRights(); // ✅ Pull permissions from context
 
   // Show nothing while auth state is being determined
   if (loading) return null;
@@ -73,28 +74,29 @@ function App() {
           } 
         />
         
-        {/* ✅ Admin Gating */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              {canAccessAdmin ? (
-                <MainLayout user={currentUser}>
-                  <AdminPage />
-                </MainLayout>
-              ) : (
-                <Navigate to="/products" replace />
-              )}
-            </ProtectedRoute>
-          } 
-        />
         
-        {/* ✅ Deleted Items Gating */}
-        <Route 
-          path="/deleted-items" 
+      {/* ✅ Admin Gating */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            {rightsLoading ? null : canAccessAdmin ? (
+              <MainLayout user={currentUser}>
+                <AdminPage />
+              </MainLayout>
+            ) : (
+              <Navigate to="/products" replace />
+            )}
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ✅ Deleted Items Gating */}
+      <Route
+          path="/deleted-items"
           element={
             <ProtectedRoute>
-              {canViewDeleted ? (
+              {rightsLoading ? null : canViewDeleted ? (
                 <MainLayout user={currentUser}>
                   <DeletedItemsPage />
                 </MainLayout>
@@ -102,7 +104,7 @@ function App() {
                 <Navigate to="/products" replace />
               )}
             </ProtectedRoute>
-          } 
+          }
         />
 
         {/* Root and fallback */}
