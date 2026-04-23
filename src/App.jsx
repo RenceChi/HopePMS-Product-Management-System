@@ -5,7 +5,6 @@ import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack'; // ✅ Using the Vercel-safe capitalized name!
 import MainLayout from './components/MainLayout';
-import ProductSandbox from './test/ProductSandbox';
 import PriceHistSandbox from './test/PriceHistSandbox';
 
 /* ── placeholder pages (replace with real ones later) ── */
@@ -13,9 +12,6 @@ const ProductsPage = () => (
   <div>
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
     <p className="text-xs text-[#859F3D]">Welcome to Hope PMS Products.</p>
-    <div className="mt-8">
-      <ProductSandbox />
-    </div>
     <div className="mt-8">
       <PriceHistSandbox />
     </div>
