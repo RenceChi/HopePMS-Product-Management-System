@@ -3,9 +3,7 @@ import { supabase } from "../db/supabase";
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -16,7 +14,7 @@ export const AuthProvider = ({ children }) => {
     const fetchAndMergeUser = async (currentSession) => {
       if (!currentSession?.user) {
         setCurrentUser(null);
-        setLoading(false); // ✅ Always resolve loading even with no session
+        setLoading(false);
         return;
       }
 
@@ -29,25 +27,33 @@ export const AuthProvider = ({ children }) => {
 
         if (error || !userRow) {
           console.error("Error fetching user row:", error);
-          setCurrentUser(currentSession.user); // Fallback to auth object
+          // ✅ Safe fallback — most restrictive defaults
+          setCurrentUser({
+            ...currentSession.user,
+            user_type: 'USER',
+            record_status: 'INACTIVE',
+          });
         } else {
+          // ✅ Full merge — user_type and record_status available everywhere
           setCurrentUser({ ...currentSession.user, ...userRow });
         }
       } catch (err) {
         console.error("fetchAndMergeUser threw:", err);
-        setCurrentUser(currentSession.user); // Never leave user stranded
+        setCurrentUser({
+          ...currentSession.user,
+          user_type: 'USER',
+          record_status: 'INACTIVE',
+        });
       } finally {
-        setLoading(false); // ✅ ALWAYS fires — app never stays blank
+        setLoading(false);
       }
     };
 
-    // 1. Check initial session on page load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       fetchAndMergeUser(session);
     });
 
-    // 2. Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -59,8 +65,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, session, loading }}>
-      {children} {/* ✅ Always renders — loading state handled in App.jsx */}
+    <AuthContext.Provider value={{
+      currentUser,
+      session,
+      loading,
+      userType: currentUser?.user_type ?? 'USER', // 
+    }}>
+      {children}
     </AuthContext.Provider>
   );
 };
