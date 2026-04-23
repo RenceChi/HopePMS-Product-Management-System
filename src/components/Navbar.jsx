@@ -43,25 +43,16 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
         className="w-9.5 h-9.5 rounded-[10px] border-none bg-transparent cursor-pointer flex flex-col items-center justify-center gap-1.25 shrink-0 p-0 transition-colors hover:bg-[rgba(133,159,61,0.25)]"
       >
         <span
-          className="block w-5 h-0.5 rounded-sm transition-transform duration-300"
-          style={{
-            background: '#F6FCDF',
-            transform: sidebarOpen ? 'translateY(7px) rotate(45deg)' : 'none',
-          }}
+          className="block w-5 h-0.5 rounded-sm"
+          style={{ background: '#F6FCDF' }}
         />
         <span
-          className="block w-5 h-0.5 rounded-sm transition-opacity duration-300"
-          style={{
-            background: '#F6FCDF',
-            opacity: sidebarOpen ? 0 : 1,
-          }}
+          className="block w-5 h-0.5 rounded-sm"
+          style={{ background: '#F6FCDF' }}
         />
         <span
-          className="block w-5 h-0.5 rounded-sm transition-transform duration-300"
-          style={{
-            background: '#F6FCDF',
-            transform: sidebarOpen ? 'translateY(-7px) rotate(-45deg)' : 'none',
-          }}
+          className="block w-5 h-0.5 rounded-sm"
+          style={{ background: '#F6FCDF' }}
         />
       </button>
 
@@ -126,7 +117,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
           <div className="hidden sm:block text-left">
             <div className="text-xs font-semibold leading-tight" style={{ color: '#F6FCDF' }}>{username}</div>
             <div className="text-[9px] capitalize leading-tight" style={{ color: 'rgba(246,252,223,0.4)' }}>
-              {user?.user_metadata?.user_type?.toLowerCase() ?? 'member'}
+              {(user?.user_type ?? user?.user_metadata?.user_type ?? 'user').toLowerCase()}
             </div>
           </div>
           <svg
