@@ -1,13 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext'; 
+import { useRights } from './context/UserRightsContext'; // ✅ Added for PR-05
 
 import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
-import AuthCallBack from './pages/AuthCallBack'; // ✅ Using the Vercel-safe capitalized name!
+import AuthCallBack from './pages/AuthCallBack'; 
 import MainLayout from './components/MainLayout';
+<<<<<<< feat/rights-context
+import RightsDebugger from './test/RightsDebugger';
+=======
 import PriceHistSandbox from './test/PriceHistSandbox';
+>>>>>>> dev
 
-/* ── placeholder pages (replace with real ones later) ── */
+/* ── placeholder pages ── */
 const ProductsPage = () => (
   <div>
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
@@ -40,8 +45,8 @@ const DeletedItemsPage = () => (
 );
 
 function App() {
-  // ✅ Consuming currentUser instead of session for more accurate routing logic
   const { currentUser, loading } = useAuth();
+  const { canAccessAdmin, canViewDeleted, rightsLoading } = useRights(); // ✅ Pull permissions from context
 
   // Show nothing while auth state is being determined
   if (loading) return null;
@@ -58,7 +63,6 @@ function App() {
           path="/products" 
           element={
             <ProtectedRoute>
-              {/* Passing currentUser back to MainLayout */}
               <MainLayout user={currentUser}>
                 <ProductsPage />
               </MainLayout>
@@ -77,29 +81,40 @@ function App() {
           } 
         />
         
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
+        
+      {/* ✅ Admin Gating */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            {rightsLoading ? null : canAccessAdmin ? (
               <MainLayout user={currentUser}>
                 <AdminPage />
               </MainLayout>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/deleted-items" 
+            ) : (
+              <Navigate to="/products" replace />
+            )}
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ✅ Deleted Items Gating */}
+      <Route
+          path="/deleted-items"
           element={
             <ProtectedRoute>
-              <MainLayout user={currentUser}>
-                <DeletedItemsPage />
-              </MainLayout>
+              {rightsLoading ? null : canViewDeleted ? (
+                <MainLayout user={currentUser}>
+                  <DeletedItemsPage />
+                </MainLayout>
+              ) : (
+                <Navigate to="/products" replace />
+              )}
             </ProtectedRoute>
-          } 
+          }
         />
 
-        {/* Root and fallback — explicit redirect based on auth state */}
+        {/* Root and fallback */}
         <Route 
           path="/" 
           element={
