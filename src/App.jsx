@@ -1,25 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext'; 
-import { useRights } from './context/UserRightsContext'; // ✅ Added for PR-05
+
 
 import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack'; 
 import MainLayout from './components/MainLayout';
-<<<<<<< feat/rights-context
-import RightsDebugger from './test/RightsDebugger';
-=======
-import PriceHistSandbox from './test/PriceHistSandbox';
->>>>>>> dev
+import AdminRoute from './router/AdminRoute';
+
 
 /* ── placeholder pages ── */
 const ProductsPage = () => (
   <div>
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
     <p className="text-xs text-[#859F3D]">Welcome to Hope PMS Products.</p>
-    <div className="mt-8">
-      <PriceHistSandbox />
-    </div>
   </div>
 );
 
@@ -46,7 +40,6 @@ const DeletedItemsPage = () => (
 
 function App() {
   const { currentUser, loading } = useAuth();
-  const { canAccessAdmin, canViewDeleted, rightsLoading } = useRights(); // ✅ Pull permissions from context
 
   // Show nothing while auth state is being determined
   if (loading) return null;
@@ -83,36 +76,28 @@ function App() {
         
         
       {/* ✅ Admin Gating */}
-      <Route
+     <Route
         path="/admin"
         element={
-          <ProtectedRoute>
-            {rightsLoading ? null : canAccessAdmin ? (
-              <MainLayout user={currentUser}>
-                <AdminPage />
-              </MainLayout>
-            ) : (
-              <Navigate to="/products" replace />
-            )}
-          </ProtectedRoute>
+          <AdminRoute>
+            <MainLayout user={currentUser}>
+              <AdminPage />
+            </MainLayout>
+          </AdminRoute>
         }
       />
 
       {/* ✅ Deleted Items Gating */}
       <Route
-          path="/deleted-items"
-          element={
-            <ProtectedRoute>
-              {rightsLoading ? null : canViewDeleted ? (
-                <MainLayout user={currentUser}>
-                  <DeletedItemsPage />
-                </MainLayout>
-              ) : (
-                <Navigate to="/products" replace />
-              )}
-            </ProtectedRoute>
-          }
-        />
+        path="/deleted-items"
+        element={
+          <AdminRoute>
+            <MainLayout user={currentUser}>
+              <DeletedItemsPage />
+            </MainLayout>
+          </AdminRoute>
+        }
+      />
 
         {/* Root and fallback */}
         <Route 
