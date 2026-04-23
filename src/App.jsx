@@ -6,13 +6,20 @@ import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack'; 
 import MainLayout from './components/MainLayout';
+<<<<<<< feat/rights-context
 import RightsDebugger from './test/RightsDebugger';
+=======
+import PriceHistSandbox from './test/PriceHistSandbox';
+>>>>>>> dev
 
 /* ── placeholder pages ── */
 const ProductsPage = () => (
   <div>
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
     <p className="text-xs text-[#859F3D]">Welcome to Hope PMS Products.</p>
+    <div className="mt-8">
+      <PriceHistSandbox />
+    </div>
   </div>
 );
 
