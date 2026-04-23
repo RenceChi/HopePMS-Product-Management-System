@@ -6,11 +6,8 @@ import ProtectedRoute from './router/ProtectedRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack'; 
 import MainLayout from './components/MainLayout';
-<<<<<<< feat/rights-context
-import RightsDebugger from './test/RightsDebugger';
-=======
 import PriceHistSandbox from './test/PriceHistSandbox';
->>>>>>> dev
+
 
 /* ── placeholder pages ── */
 const ProductsPage = () => (
