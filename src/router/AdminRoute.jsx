@@ -8,15 +8,15 @@ const AdminRoute = ({ children }) => {
   // Wait for auth to resolve
   if (loading) return null;
 
-  // Not logged in — send to login
+  // Not logged in
   if (!currentUser) return <Navigate to="/login" replace />;
 
-  // Logged in but not ADMIN or SUPERADMIN — send to products
+  // Logged in but USER — redirect to products
   if (!['ADMIN', 'SUPERADMIN'].includes(currentUser.user_type)) {
     return <Navigate to="/products" replace />;
   }
 
-  // Passed all checks — render the page
+  // ADMIN or SUPERADMIN — allow through
   return children;
 };
 
