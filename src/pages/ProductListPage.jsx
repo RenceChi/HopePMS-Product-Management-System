@@ -5,10 +5,7 @@ import {
   softDeleteProduct,
   getUserRights,
 } from '../services/productService';
-import AddProductModal from '../components/AddProductModal';
-import EditProductModal from '../components/EditProductModal';
-import SoftDeleteConfirmDialog from '../components/SoftDeleteConfirmDialog';
-import PriceHistoryPanel from '../components/PriceHistoryPanel';
+
 
 const StatusBadge = ({ status }) => (
   <span
@@ -174,7 +171,7 @@ export default function ProductListPage() {
       <div className="flex-1 overflow-hidden rounded-2xl"
         style={{ background: 'white', boxShadow: '0 4px 24px rgba(26,26,25,0.07)', border: '1px solid rgba(133,159,61,0.1)' }}>
         <div className="overflow-x-auto h-full">
-          <table className="w-full min-w-[600px] border-collapse">
+          <table className="w-full min-w-150 border-collapse">
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(133,159,61,0.12)' }}>
                 {['Prod. Code', 'Description', 'Unit', 'Status'].map(h => (
@@ -223,7 +220,7 @@ export default function ProductListPage() {
                       </td>
                       <td className="px-4 py-3"><StatusBadge status={product.record_status} /></td>
                       {showStamp && (
-                        <td className="px-4 py-3 text-[11px] font-mono max-w-[180px] truncate"
+                        <td className="px-4 py-3 text-[11px] font-mono max-w-45 truncate"
                           style={{ color: 'rgba(26,26,25,0.4)' }} title={product.stamp}>
                           {product.stamp ?? '—'}
                         </td>
