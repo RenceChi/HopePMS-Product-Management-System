@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../db/supabase';
-import { makeStamp } from '../utils/stampHelper';
+import { getPriceHistory, addPriceEntry } from '../services/priceHistService';
 
 const showStampFor = (userType) => ['ADMIN', 'SUPERADMIN'].includes(userType);
 
@@ -43,21 +42,19 @@ function AddPriceEntryForm({ product, currentUser, onSuccess }) {
     setSubmitting(true);
     setServerError('');
 
-    const stamp = makeStamp('ADDED', currentUser?.userid ?? currentUser?.id);
-    const { error } = await supabase.from('pricehist').insert({
-      prodcode: product.prodcode,
-      effdate: form.effdate,
-      unitprice: parseFloat(Number(form.unitprice).toFixed(2)),
-      stamp,
-    });
-
-    if (error) {
-      setServerError(error.code === '23505' ? 'A price entry for this date already exists.' : error.message);
-      setSubmitting(false);
-    } else {
+    try {
+      await addPriceEntry(
+        product.prodcode,
+        form.effdate,
+        parseFloat(Number(form.unitprice).toFixed(2)),
+        currentUser?.userid ?? currentUser?.id
+      );
       setForm({ effdate: '', unitprice: '' });
       setShowForm(false);
       onSuccess();
+    } catch (err) {
+      setServerError(err.code === '23505' ? 'A price entry for this date already exists.' : err.message);
+      setSubmitting(false);
     }
   };
 
@@ -177,16 +174,15 @@ export default function PriceHistoryPanel({ product, currentUser, onClose }) {
   const fetchHistory = useCallback(async () => {
     setLoading(true);
     setError('');
-    const { data, error: err } = await supabase
-      .from('pricehist')
-      .select(showStamp ? 'effdate, unitprice, stamp' : 'effdate, unitprice')
-      .eq('prodcode', product.prodcode)
-      .order('effdate', { ascending: false });
-
-    if (err) setError(err.message);
-    else setHistory(data ?? []);
-    setLoading(false);
-  }, [product.prodcode, showStamp]);
+    try {
+      const data = await getPriceHistory(product.prodcode);
+      setHistory(data ?? []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [product.prodcode]);
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
