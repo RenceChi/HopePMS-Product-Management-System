@@ -8,21 +8,9 @@ import AdminRoute from './router/AdminRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
-import PriceHistSandbox from './test/PriceHistSandbox';
+import ProductListPage from './pages/ProductListPage';
 
-
-/* ── placeholder pages ── */
-const ProductsPage = () => (
-  <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
-    <p className="text-xs text-[#859F3D]">Welcome to Hope PMS Products.</p>
-    <div className="mt-8">
-      <PriceHistSandbox />
-    </div>
-  </div>
-);
-
-/* ── Placeholder pages — replace with real pages in later PRs ── */
+/* ── Placeholder pages — replace in Sprint 2/3 PRs ── */
 const ReportsPage = () => (
   <div className="p-4">
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Reports</h1>
@@ -48,7 +36,7 @@ function App() {
   const { currentUser, loading } = useAuth();
   const { rightsLoading } = useRights();
 
-  // Wait for both auth and rights to resolve
+  // Wait for both auth and rights to resolve before rendering routes
   if (loading || rightsLoading) return null;
 
   return (
@@ -62,7 +50,7 @@ function App() {
         <Route path="/products" element={
           <ProtectedRoute>
             <MainLayout user={currentUser}>
-              <ProductsPage />
+              <ProductListPage />
             </MainLayout>
           </ProtectedRoute>
         } />
