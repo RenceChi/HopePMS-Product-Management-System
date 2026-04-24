@@ -1,133 +1,104 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useRights } from './context/UserRightsContext';
 
 import ProtectedRoute from './router/ProtectedRoute';
+import AdminRoute from './router/AdminRoute';
 import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
+import PriceHistSandbox from './test/PriceHistSandbox';
 
-/* ── Sprint 2 pages ── */
-import ProductsPage from './pages/ProductListPage';
-import DeletedItemsPage from './pages/DeletedItemsPage';
 
-/* ── placeholder pages (replace with real ones in Sprint 2/3) ── */
-const DashboardPage = () => (
+/* ── placeholder pages ── */
+const ProductsPage = () => (
   <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Dashboard</h1>
-    <p className="text-xs text-[#859F3D]">Welcome to Hope PMS.</p>
+    <h1 className="text-xl font-bold text-[#31511E] mb-1">Products</h1>
+    <p className="text-xs text-[#859F3D]">Welcome to Hope PMS Products.</p>
+    <div className="mt-8">
+      <PriceHistSandbox />
+    </div>
   </div>
 );
 
-const PriceHistoryStandalonePage = () => (
-  <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Price History</h1>
-    <p className="text-xs text-[#859F3D]">
-      Use the price history panel on a product row to view and add price entries.
-    </p>
-  </div>
-);
-
-const SalesPage = () => (
-  <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Sales</h1>
-    <p className="text-xs text-[#859F3D]">Sales records will appear here.</p>
-  </div>
-);
-
-const CustomersPage = () => (
-  <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Customers</h1>
-    <p className="text-xs text-[#859F3D]">Customer management coming in Sprint 3.</p>
-  </div>
-);
-
-const PaymentsPage = () => (
-  <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Payments</h1>
-    <p className="text-xs text-[#859F3D]">Payment records coming in Sprint 3.</p>
-  </div>
-);
-
+/* ── Placeholder pages — replace with real pages in later PRs ── */
 const ReportsPage = () => (
-  <div>
+  <div className="p-4">
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Reports</h1>
-    <p className="text-xs text-[#859F3D]">Reports module coming in Sprint 3.</p>
+    <p className="text-xs text-[#859F3D]">View system reports here.</p>
   </div>
 );
 
 const AdminPage = () => (
-  <div>
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Admin — User Management</h1>
-    <p className="text-xs text-[#859F3D]">User management coming in Sprint 3.</p>
+  <div className="p-4">
+    <h1 className="text-xl font-bold text-[#31511E] mb-1">Admin Dashboard</h1>
+    <p className="text-xs text-[#859F3D]">Manage users and system settings.</p>
   </div>
 );
 
-/* ── route guard for admin-only pages ── */
-function AdminRoute({ children }) {
-  const { currentUser, loading } = useAuth();
-  if (loading) return null;
-  const userType = currentUser?.user_type ?? 'USER';
-  if (!['ADMIN', 'SUPERADMIN'].includes(userType)) {
-    return <Navigate to="/products" replace />;
-  }
-  return children;
-}
+const DeletedItemsPage = () => (
+  <div className="p-4">
+    <h1 className="text-xl font-bold text-[#31511E] mb-1">Deleted Items</h1>
+    <p className="text-xs text-[#859F3D]">Recover or permanently delete items.</p>
+  </div>
+);
 
 function App() {
   const { currentUser, loading } = useAuth();
-  if (loading) return null;
+  const { rightsLoading } = useRights();
 
-  const wrap = (page) => (
-    <ProtectedRoute>
-      <MainLayout user={currentUser}>{page}</MainLayout>
-    </ProtectedRoute>
-  );
+  // Wait for both auth and rights to resolve
+  if (loading || rightsLoading) return null;
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
-        <Route path="/login"         element={<AuthPage />} />
+        {/* ── Public ── */}
+        <Route path="/login" element={<AuthPage />} />
         <Route path="/auth/callback" element={<AuthCallBack />} />
 
-        {/* Protected — general */}
-        <Route path="/dashboard"    element={wrap(<DashboardPage />)} />
-        <Route path="/products"     element={wrap(<ProductsPage />)} />
-        <Route path="/price-history" element={wrap(<PriceHistoryStandalonePage />)} />
-        <Route path="/sales"        element={wrap(<SalesPage />)} />
-        <Route path="/customers"    element={wrap(<CustomersPage />)} />
-        <Route path="/payments"     element={wrap(<PaymentsPage />)} />
-        <Route path="/reports"      element={wrap(<ReportsPage />)} />
+        {/* ── Protected — any authenticated ACTIVE user ── */}
+        <Route path="/products" element={
+          <ProtectedRoute>
+            <MainLayout user={currentUser}>
+              <ProductsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
 
-        {/* Protected — admin/superadmin only */}
-        <Route
-          path="/deleted-items"
-          element={
-            <ProtectedRoute>
-              <AdminRoute>
-                <MainLayout user={currentUser}>
-                  <DeletedItemsPage />
-                </MainLayout>
-              </AdminRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <ProtectedRoute>
-              <AdminRoute>
-                <MainLayout user={currentUser}>
-                  <AdminPage />
-                </MainLayout>
-              </AdminRoute>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/reports" element={
+          <ProtectedRoute>
+            <MainLayout user={currentUser}>
+              <ReportsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
 
-        {/* Root and fallback */}
-        <Route path="/"  element={<Navigate to={currentUser ? '/products' : '/login'} replace />} />
-        <Route path="*"  element={<Navigate to={currentUser ? '/products' : '/login'} replace />} />
+        {/* ── Admin only — ADMIN and SUPERADMIN ── */}
+        <Route path="/admin" element={
+          <AdminRoute>
+            <MainLayout user={currentUser}>
+              <AdminPage />
+            </MainLayout>
+          </AdminRoute>
+        } />
+
+        <Route path="/deleted-items" element={
+          <AdminRoute>
+            <MainLayout user={currentUser}>
+              <DeletedItemsPage />
+            </MainLayout>
+          </AdminRoute>
+        } />
+
+        {/* ── Fallback ── */}
+        <Route path="/" element={
+          <Navigate to={currentUser ? '/products' : '/login'} replace />
+        } />
+        <Route path="*" element={
+          <Navigate to={currentUser ? '/products' : '/login'} replace />
+        } />
       </Routes>
     </BrowserRouter>
   );
