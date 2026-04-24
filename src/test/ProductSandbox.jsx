@@ -5,7 +5,7 @@ import {
   updateProduct, 
   softDeleteProduct, 
   recoverProduct 
-} from '../services/productServices'; // Adjust this path if needed!
+} from '../services/productService'; // Adjust this path if needed!
 
 export default function ProductSandbox() {
   const [log, setLog] = useState('Sandbox Ready. Click a button to test.');
