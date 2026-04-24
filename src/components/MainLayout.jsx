@@ -25,6 +25,7 @@ export default function MainLayout({ children, user }) {
       />
 
       <div className="flex flex-1 overflow-hidden relative">
+        {/* The Sidebar will now internally check useRights() to hide/show links */}
         <Sidebar
           open={sidebarOpen}
           isMobile={isMobile}
@@ -35,7 +36,6 @@ export default function MainLayout({ children, user }) {
           {children}
         </main>
       </div>
-      
     </div>
   );
 }
