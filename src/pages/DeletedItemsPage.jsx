@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../db/supabase';
 import { useAuth } from '../context/AuthContext';
-import { makeStamp } from '../utils/stampHelper';
+import { getProducts, recoverProduct } from '../services/productService';
 
 /* ── skeleton ── */
 const SkeletonRow = () => (
@@ -86,34 +85,31 @@ export default function DeletedItemsPage() {
   const fetchDeleted = useCallback(async () => {
     setLoading(true);
     setError('');
-    const { data, error: err } = await supabase
-      .from('product')
-      .select(showStamp
-        ? 'prodcode, description, unit, stamp'
-        : 'prodcode, description, unit')
-      .eq('record_status', 'INACTIVE')
-      .order('prodcode');
-
-    if (err) setError(err.message);
-    else setProducts(data ?? []);
-    setLoading(false);
-  }, [showStamp]);
+    try {
+      // getProducts returns ALL records for ADMIN/SUPERADMIN,
+      // then we filter client-side for INACTIVE only
+      const data = await getProducts(userType);
+      setProducts(data.filter(p => p.record_status === 'INACTIVE'));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [userType]);
 
   useEffect(() => { fetchDeleted(); }, [fetchDeleted]);
 
   const handleRecover = async (prodcode) => {
-    const stamp = makeStamp('REACTIVATED', currentUser?.userid ?? currentUser?.id);
-    const { error: err } = await supabase
-      .from('product')
-      .update({ record_status: 'ACTIVE', stamp })
-      .eq('prodcode', prodcode);
-
+    const err = await recoverProduct(
+      prodcode,
+      currentUser?.userid ?? currentUser?.id
+    ).catch(e => e);
     if (!err) {
       setSuccessMsg(`${prodcode} has been recovered successfully.`);
       setTimeout(() => setSuccessMsg(''), 4000);
       fetchDeleted();
     }
-    return err;
+    return err ?? null;
   };
 
   const visible = products.filter(p =>
