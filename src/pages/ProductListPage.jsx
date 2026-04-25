@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import {
-  getProducts,
-  softDeleteProduct,
-  getUserRights,
-} from '../services/productService';
+import { useRights } from '../context/UserRightsContext';
+import { getProducts, softDeleteProduct } from '../services/productService';
 
+import AddProductModal from '../components/AddProductModal';
+import EditProductModal from '../components/EditProductModal';
+import SoftDeleteConfirmDialog from '../components/SoftDeleteConfirmDialog';
+import PriceHistoryPanel from '../components/PriceHistoryPanel';
 
 const StatusBadge = ({ status }) => (
   <span
@@ -45,22 +46,10 @@ function ActionBtn({ title, color, hoverBg, hoverColor, onClick, children }) {
 
 export default function ProductListPage() {
   const { currentUser } = useAuth();
+  const { rights, rightsLoading } = useRights();
   const userType  = currentUser?.user_type ?? 'USER';
   const userId    = currentUser?.userid ?? currentUser?.id ?? '';
   const showStamp = ['ADMIN', 'SUPERADMIN'].includes(userType);
-
-  // Rights fetched from DB — never rely on currentUser for rights
-  const [rights, setRights] = useState({ PRD_ADD: false, PRD_EDIT: false, PRD_DEL: false });
-  const [rightsLoading, setRightsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!userId) return;
-    setRightsLoading(true);
-    getUserRights(userId, userType)
-      .then(map => setRights(map))
-      .catch(console.error)
-      .finally(() => setRightsLoading(false));
-  }, [userId, userType]); // userType in deps so dev switcher triggers re-fetch
 
   const [products, setProducts]         = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -117,7 +106,7 @@ export default function ProductListPage() {
             </span>
           </p>
         </div>
-        {rights.PRD_ADD && (
+        {rights.PRD_ADD === 1 && (
           <button onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0"
             style={{ background: '#31511E', color: '#F6FCDF', boxShadow: '0 2px 10px rgba(49,81,30,0.25)' }}
@@ -171,7 +160,7 @@ export default function ProductListPage() {
       <div className="flex-1 overflow-hidden rounded-2xl"
         style={{ background: 'white', boxShadow: '0 4px 24px rgba(26,26,25,0.07)', border: '1px solid rgba(133,159,61,0.1)' }}>
         <div className="overflow-x-auto h-full">
-          <table className="w-full min-w-150 border-collapse">
+          <table className="w-full min-w-[600px] border-collapse">
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(133,159,61,0.12)' }}>
                 {['Prod. Code', 'Description', 'Unit', 'Status'].map(h => (
@@ -220,7 +209,7 @@ export default function ProductListPage() {
                       </td>
                       <td className="px-4 py-3"><StatusBadge status={product.record_status} /></td>
                       {showStamp && (
-                        <td className="px-4 py-3 text-[11px] font-mono max-w-45 truncate"
+                        <td className="px-4 py-3 text-[11px] font-mono max-w-[180px] truncate"
                           style={{ color: 'rgba(26,26,25,0.4)' }} title={product.stamp}>
                           {product.stamp ?? '—'}
                         </td>
@@ -235,7 +224,7 @@ export default function ProductListPage() {
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
                           </ActionBtn>
-                          {rights.PRD_EDIT && product.record_status === 'ACTIVE' && (
+                          {rights.PRD_EDIT === 1 && product.record_status === 'ACTIVE' && (
                             <ActionBtn title="Edit Product" color="rgba(26,26,25,0.4)"
                               hoverBg="rgba(133,159,61,0.12)" hoverColor="#31511E"
                               onClick={() => setEditTarget(product)}>
@@ -245,7 +234,7 @@ export default function ProductListPage() {
                               </svg>
                             </ActionBtn>
                           )}
-                          {rights.PRD_DEL && product.record_status === 'ACTIVE' && (
+                          {rights.PRD_DEL === 1 && product.record_status === 'ACTIVE' && (
                             <ActionBtn title="Soft Delete" color="rgba(220,38,38,0.5)"
                               hoverBg="rgba(239,68,68,0.09)" hoverColor="#dc2626"
                               onClick={() => setDeleteTarget(product)}>
