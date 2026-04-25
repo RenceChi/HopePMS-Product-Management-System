@@ -17,7 +17,7 @@ export default function SoftDeleteConfirmDialog({ product, onClose, onConfirm })
   };
 
   return (
-    <ModalShell title="Soft Delete Product" onClose={onClose}>
+    <ModalShell title="Soft Delete Product" onClose={loading ? () => {} : onClose}>
       <div className="flex flex-col gap-5">
         {/* warning icon */}
         <div className="flex flex-col items-center gap-3 py-2">

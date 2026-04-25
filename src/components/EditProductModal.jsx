@@ -40,6 +40,17 @@ export default function EditProductModal({ product, currentUser, onClose, onSucc
   const handleSubmit = async () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
+
+    // ✅ Dirty check — don't write to DB if nothing changed
+    const hasChanged =
+      form.description.trim() !== (product.description ?? '').trim() ||
+      form.unit !== product.unit;
+
+    if (!hasChanged) {
+      onClose(); // nothing changed — just close
+      return;
+    }
+
     setSubmitting(true);
     setServerError('');
 

@@ -72,7 +72,7 @@ export default function AddProductModal({ currentUser, onClose, onSuccess }) {
             maxLength={6}
             placeholder="e.g. AK0001"
             value={form.prodcode}
-            onChange={e => set('prodcode', e.target.value)}
+            onChange={e => set('prodcode', e.target.value.toUpperCase())}
             className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all uppercase"
             style={inputStyle(errors.prodcode)}
             onFocus={e => e.target.style.boxShadow = '0 0 0 2px rgba(133,159,61,0.45), 0 2px 8px rgba(49,81,30,0.06)'}
@@ -87,6 +87,7 @@ export default function AddProductModal({ currentUser, onClose, onSuccess }) {
             placeholder="Product description (max 30 chars)"
             value={form.description}
             onChange={e => set('description', e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleSubmit(); }}
             className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all"
             style={inputStyle(errors.description)}
             onFocus={e => e.target.style.boxShadow = '0 0 0 2px rgba(133,159,61,0.45), 0 2px 8px rgba(49,81,30,0.06)'}
