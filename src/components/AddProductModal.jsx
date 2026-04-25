@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../db/supabase';
-import { makeStamp } from '../utils/stampHelper';
+import { addProduct } from '../services/productService';
 
 const UNITS = ['pc', 'ea', 'mtr', 'pkg', 'ltr'];
 
@@ -44,20 +43,15 @@ export default function AddProductModal({ currentUser, onClose, onSuccess }) {
     setSubmitting(true);
     setServerError('');
 
-    const stamp = makeStamp('ADDED', currentUser?.userid ?? currentUser?.id);
-    const { error } = await supabase.from('product').insert({
-      prodcode: form.prodcode.trim().toUpperCase(),
-      description: form.description.trim(),
-      unit: form.unit,
-      record_status: 'ACTIVE',
-      stamp,
-    });
-
-    if (error) {
+    try {
+      await addProduct(
+        { prodcode: form.prodcode, description: form.description, unit: form.unit },
+        currentUser?.userid ?? currentUser?.id
+      );
+      onSuccess();
+    } catch (error) {
       setServerError(error.code === '23505' ? 'Product code already exists.' : error.message);
       setSubmitting(false);
-    } else {
-      onSuccess();
     }
   };
 

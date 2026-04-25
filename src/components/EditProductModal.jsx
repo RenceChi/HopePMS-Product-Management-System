@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../db/supabase';
-import { makeStamp } from '../utils/stampHelper';
+import { updateProduct } from '../services/productService';
 import { ModalShell } from './AddProductModal';
 
 const UNITS = ['pc', 'ea', 'mtr', 'pkg', 'ltr'];
@@ -44,17 +43,16 @@ export default function EditProductModal({ product, currentUser, onClose, onSucc
     setSubmitting(true);
     setServerError('');
 
-    const stamp = makeStamp('EDITED', currentUser?.userid ?? currentUser?.id);
-    const { error } = await supabase
-      .from('product')
-      .update({ description: form.description.trim(), unit: form.unit, stamp })
-      .eq('prodcode', product.prodcode);
-
-    if (error) {
+    try {
+      await updateProduct(
+        product.prodcode,
+        { description: form.description, unit: form.unit },
+        currentUser?.userid ?? currentUser?.id
+      );
+      onSuccess();
+    } catch (error) {
       setServerError(error.message);
       setSubmitting(false);
-    } else {
-      onSuccess();
     }
   };
 
