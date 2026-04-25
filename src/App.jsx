@@ -9,6 +9,10 @@ import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
 import ProductListPage from './pages/ProductListPage';
+import AddProductModal from './components/AddProductModal';
+import EditProductModal from './components/EditProductModal';
+import SoftDeleteConfirmDialog from './components/SoftDeleteConfirmDialog'; 
+import PriceHistoryPanel from './components/PriceHistoryPanel';
 
 /* ── Placeholder pages — replace in Sprint 2/3 PRs ── */
 const ReportsPage = () => (
