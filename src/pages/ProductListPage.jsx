@@ -6,7 +6,7 @@ import { getProducts, softDeleteProduct } from '../services/productService';
 import AddProductModal from '../components/AddProductModal';
 import EditProductModal from '../components/EditProductModal';
 import SoftDeleteConfirmDialog from '../components/SoftDeleteConfirmDialog';
-import PriceHistoryPanel from '../components/PriceHistoryPanel';
+
 
 const StatusBadge = ({ status }) => (
   <span
