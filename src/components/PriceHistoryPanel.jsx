@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPriceHistory, addPriceEntry } from '../services/priceHistService';
+import { useRights } from '../context/UserRightsContext';
 
 const showStampFor = (userType) => ['ADMIN', 'SUPERADMIN'].includes(userType);
 
@@ -165,7 +166,8 @@ function AddPriceEntryForm({ product, currentUser, onSuccess }) {
 export default function PriceHistoryPanel({ product, currentUser, onClose }) {
   const userType = currentUser?.user_type ?? 'USER';
   const showStamp = showStampFor(userType);
-  const canAdd = ['ADMIN', 'SUPERADMIN', 'USER'].includes(userType); // same as PRD_ADD
+  const { rights } = useRights();
+  const canAdd = rights.PRD_ADD === 1;
 
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -333,7 +335,7 @@ export default function PriceHistoryPanel({ product, currentUser, onClose }) {
                           {fmt(row.unitprice)}
                         </td>
                         {showStamp && (
-                          <td className="px-3.5 py-2.5 text-[9px] font-mono max-w-[120px] truncate"
+                          <td className="px-3.5 py-2.5 text-[9px] font-mono max-w-30 truncate"
                             style={{ color: 'rgba(26,26,25,0.35)' }} title={row.stamp}>
                             {row.stamp ?? '—'}
                           </td>
