@@ -9,10 +9,7 @@ import AuthPage from './pages/AuthPage';
 import AuthCallBack from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
 import ProductListPage from './pages/ProductListPage';
-import AddProductModal from './components/AddProductModal';
-import EditProductModal from './components/EditProductModal';
-import SoftDeleteConfirmDialog from './components/SoftDeleteConfirmDialog'; 
-import PriceHistoryPanel from './components/PriceHistoryPanel';
+import DeletedItemsPage from './pages/DeletedItemsPage';
 
 /* ── Placeholder pages — replace in Sprint 2/3 PRs ── */
 const ReportsPage = () => (
@@ -29,12 +26,7 @@ const AdminPage = () => (
   </div>
 );
 
-const DeletedItemsPage = () => (
-  <div className="p-4">
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Deleted Items</h1>
-    <p className="text-xs text-[#859F3D]">Recover or permanently delete items.</p>
-  </div>
-);
+
 
 function App() {
   const { currentUser, loading } = useAuth();
