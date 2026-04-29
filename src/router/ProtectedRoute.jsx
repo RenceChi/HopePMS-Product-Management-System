@@ -3,26 +3,28 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../db/supabase';
 
 const ProtectedRoute = ({ children }) => {
-  // 1. Read directly from our global context
   const { currentUser, loading } = useAuth();
 
-  // 2. Wait for the context to finish fetching session/user data
+  // Still fetching session or user row — hold, don't redirect
   if (loading) return null;
 
-  // 3. No user logged in? Send to login.
+  // No session at all — send to login
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
-  // 4. Check account activation
-  // AuthContext already merged 'record_status' into currentUser for us.
+  // DB fetch returned null / RLS issue — hold without signing out.
+  // AuthContext will re-render once the real row arrives.
+  if (currentUser.record_status === 'PENDING') {
+    return null;
+  }
+
+  // Confirmed inactive account — sign out and show the error message
   if (currentUser.record_status !== 'ACTIVE') {
-    // If they aren't active, sign them out of Supabase and redirect
     supabase.auth.signOut();
     return <Navigate to="/login?error=inactive" replace />;
   }
 
-  // 5. If they pass all checks, render the page (children)
   return children;
 };
 
