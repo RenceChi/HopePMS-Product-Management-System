@@ -138,7 +138,7 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) setMsg({ type: 'error', text: error.message });
-    else navigate('/dashboard');
+    else navigate('/products');
 
   };
 
