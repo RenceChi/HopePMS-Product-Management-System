@@ -3,60 +3,42 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../db/supabase';
 
 /**
- * AuthCallback
- * Handles the redirect after OAuth (e.g. Google Sign-In).
- * Place this at route: /auth/callback
- */
+ AuthCallback
+ Handles the redirect after OAuth (e.g. Google Sign-In).
+ Route: /auth/callback
+ **/
 export default function AuthCallBack() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase automatically parses the URL hash on page load.
-    // We just wait for the session to be established, then redirect.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Check record_status before allowing access
-        const { data, error } = await supabase
-          .from('user')
-          .select('record_status')
-          .eq('userid', session.user.id)
-          .single();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          const { data, error } = await supabase
+            .from('user')
+            .select('record_status')
+            .eq('userid', session.user.id)
+            .single();
 
-        if (error || !data || data.record_status !== 'ACTIVE') {
-          await supabase.auth.signOut();
-          navigate('/login?error=inactive', { replace: true });
-        } else {
-          // Bug #3 Fixed: Route to /products instead of /dashboard
-          navigate('/products', { replace: true });
+          if (error || !data || data.record_status !== 'ACTIVE') {
+            await supabase.auth.signOut();
+            navigate('/login?error=inactive', { replace: true });
+          } else {
+            navigate('/products', { replace: true });
+          }
+        }
+
+        // Handle cases where the OAuth token in the URL is invalid
+        // or the session could not be established by Supabase
+        if (event === 'SIGNED_OUT') {
+          navigate('/login', { replace: true });
         }
       }
-    });
+    );
 
-    // Fallback: check current session in case the event already fired
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session) {
-        const { data, error } = await supabase
-          .from('user')
-          .select('record_status')
-          .eq('userid', session.user.id)
-          .single();
-
-        if (error || !data || data.record_status !== 'ACTIVE') {
-          await supabase.auth.signOut();
-          navigate('/login?error=inactive', { replace: true });
-        } else {
-          // Bug #3 Fixed: Route to /products instead of /dashboard
-          navigate('/products', { replace: true });
-        }
-      }
-    });
-
-    // Bug #2 Fixed: Proper cleanup function to prevent memory leaks
     return () => subscription.unsubscribe();
-    
-  }, [navigate]); // Bug #2 Fixed: Added dependency array
+  }, [navigate]);
 
-  // Bug #1 Fixed: JSX is now safely outside the useEffect block
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#eeeeee8f]"
       style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #859F3D12 0%, transparent 60%)' }}>
@@ -64,12 +46,10 @@ export default function AuthCallBack() {
       <div className="flex flex-col items-center gap-6">
         {/* animated logo */}
         <div className="relative w-16 h-16">
-          {/* spinning ring */}
           <svg className="absolute inset-0 w-16 h-16 animate-spin" viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="28" stroke="#859F3D" strokeWidth="2" strokeDasharray="44 132"
               strokeLinecap="round" />
           </svg>
-          {/* center icon */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-10 h-10 rounded-xl bg-[#31511E] flex items-center justify-center shadow-lg">
               <svg className="w-5 h-5 text-[#F6FCDF]" fill="currentColor" viewBox="0 0 24 24">
@@ -79,14 +59,12 @@ export default function AuthCallBack() {
           </div>
         </div>
 
-        {/* text */}
         <div className="text-center">
           <p className="text-[10px] tracking-[0.3em] text-[#859F3D] uppercase font-bold mb-1">Hope, Inc.</p>
           <p className="text-sm font-semibold text-[#31511E]">Signing you in…</p>
           <p className="text-[11px] text-[#1A1A19]/40 mt-1">Please wait while we set things up.</p>
         </div>
 
-        {/* progress dots */}
         <div className="flex gap-1.5">
           {[0, 1, 2].map(i => (
             <span key={i} className="w-1.5 h-1.5 rounded-full bg-[#859F3D]"
