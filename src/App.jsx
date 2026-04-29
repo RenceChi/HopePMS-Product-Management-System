@@ -36,7 +36,9 @@ function App() {
   const { rightsLoading } = useRights();
 
   // Wait for both auth and rights to resolve before rendering routes
-  if (loading || rightsLoading) return null;
+  const isAuthCallback = window.location.pathname === '/auth/callback';
+  if ((loading || rightsLoading) && !isAuthCallback) return null;
+
 
   return (
     <BrowserRouter>
