@@ -60,6 +60,28 @@
 | record_status | VARCHAR      | NULL, DEFAULT 'ACTIVE'                      |
 | stamp         | VARCHAR      | NULL                                        |
 
+## sales table
+| Column      | Type    | Constraint                                      |
+|-------------|---------|-------------------------------------------------|
+| transno     | VARCHAR | PRIMARY KEY, NOT NULL                           |
+| salesdate   | DATE    | NULL                                            |
+| custno      | VARCHAR | NULL                                            |
+| empno       | VARCHAR | FOREIGN KEY (employee), NULL                    |
+
+## salesdetail table
+| Column      | Type    | Constraint                                      |
+|-------------|---------|-------------------------------------------------|
+| transno     | VARCHAR | PRIMARY KEY, FOREIGN KEY (sales), NOT NULL      |
+| prodcode    | VARCHAR | PRIMARY KEY, FOREIGN KEY (product), NOT NULL    |
+| quantity    | NUMERIC | NULL                                            |
+
+## payment table
+| Column      | Type    | Constraint                                      |
+|-------------|---------|-------------------------------------------------|
+| orno        | VARCHAR | PRIMARY KEY, NOT NULL                           |
+| paydate     | DATE    | NULL                                            |
+| amount      | NUMERIC | NULL                                            |
+| transno     | VARCHAR | FOREIGN KEY (sales), NULL                       |
 
 ## Key Rules
 - No hard deletes anywhere in the app
