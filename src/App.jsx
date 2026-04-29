@@ -10,11 +10,8 @@ import AuthCallBack from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
 import ProductListPage from './pages/ProductListPage';
 import DeletedItemsPage from './pages/DeletedItemsPage';
-import { getProductPriceReport, getTopSellingReport } from './services/reportService';
 
 /* ── Placeholder pages — replace in Sprint 2/3 PRs ── */
-
-
 const ReportsPage = () => (
   <div className="p-4">
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Reports</h1>
@@ -29,14 +26,13 @@ const AdminPage = () => (
   </div>
 );
 
-
-
 function App() {
   const { currentUser, loading } = useAuth();
   const { rightsLoading } = useRights();
 
-  // Wait for both auth and rights to resolve before rendering routes
-  if (loading || rightsLoading) return null;
+  const isAuthCallback = window.location.pathname === '/auth/callback';
+
+  if ((loading || rightsLoading) && !isAuthCallback) return null;
 
   return (
     <BrowserRouter>
@@ -79,7 +75,11 @@ function App() {
           </AdminRoute>
         } />
 
-        {/* ── Fallback ── */}
+        {/* ── Fallback ──
+            Only evaluated after auth+rights are fully resolved (see guard
+            above), so currentUser here is always the real final value —
+            never an intermediate null from a cold start race condition.
+        ── */}
         <Route path="/" element={
           <Navigate to={currentUser ? '/products' : '/login'} replace />
         } />
