@@ -10,8 +10,11 @@ import AuthCallBack from './pages/AuthCallBack';
 import MainLayout from './components/MainLayout';
 import ProductListPage from './pages/ProductListPage';
 import DeletedItemsPage from './pages/DeletedItemsPage';
+import { getProductPriceReport, getTopSellingReport } from './services/reportService';
 
 /* ── Placeholder pages — replace in Sprint 2/3 PRs ── */
+
+
 const ReportsPage = () => (
   <div className="p-4">
     <h1 className="text-xl font-bold text-[#31511E] mb-1">Reports</h1>
