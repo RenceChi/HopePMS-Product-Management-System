@@ -12,13 +12,18 @@ export const useRights = () => {
 };
 
 export const UserRightsProvider = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading} = useAuth();
   const [rights, setRights] = useState({});
   const [rightsLoading, setRightsLoading] = useState(true);
 
+  
   useEffect(() => {
-    // No user logged in — clear rights and stop loading
-    if (!currentUser?.userid) {
+    // Wait for AuthContext to finish resolving before doing anything
+    if (loading) return;
+
+    const uid = currentUser?.userid;
+
+    if (!uid) {
       setRights({});
       setRightsLoading(false);
       return;
@@ -30,18 +35,15 @@ export const UserRightsProvider = ({ children }) => {
         const { data, error } = await supabase
           .from('user_module_rights')
           .select('right_id, rights_value')
-          .eq('userid', currentUser.userid)
+          .eq('userid', uid)
           .eq('record_status', 'ACTIVE');
 
         if (error) throw error;
 
-        // Build rights map from DB rows
-        // Result: { PRD_ADD: 1, PRD_EDIT: 1, PRD_DEL: 0, REP_001: 1, REP_002: 0, ADM_USER: 0 }
         const rightsMap = {};
         data.forEach(row => {
           rightsMap[row.right_id] = row.rights_value;
         });
-
         setRights(rightsMap);
       } catch (err) {
         console.error("Failed to fetch user rights:", err);
@@ -52,27 +54,40 @@ export const UserRightsProvider = ({ children }) => {
     };
 
     fetchRights();
-  }, [currentUser?.userid]); // Re-fetch only when the logged-in user changes
+  }, [currentUser?.userid, loading]); // ← wait for loading to settle
 
-  // ── Derived role values ───────────────────────────────────
   const userType = currentUser?.user_type ?? 'USER';
 
+  // ── PR-08: GRANULAR PERMISSION FLAGS ───────────────────────
+  // We use the 'rights' map to determine visibility of specific items
   const value = {
-    // Raw rights map from DB — used by M2 for button gating
-    // Usage: rights.PRD_ADD === 1, rights.PRD_DEL === 1
     rights,
     rightsLoading,
-
-    // Role identity checks
     userType,
+    
+    // Role checks
     isUser:       userType === 'USER',
     isAdmin:      userType === 'ADMIN',
     isSuperAdmin: userType === 'SUPERADMIN',
 
-    // ── Convenience flags for App.jsx route gating ──────────
-    // Both ADMIN and SUPERADMIN can access these routes
-    canAccessAdmin:  ['ADMIN', 'SUPERADMIN'].includes(userType),
-    canViewDeleted:  ['ADMIN', 'SUPERADMIN'].includes(userType),
+    // Global Gating (Still used for route protection)
+    canAccessAdmin: ['ADMIN', 'SUPERADMIN'].includes(userType),
+    canViewDeleted: ['ADMIN', 'SUPERADMIN'].includes(userType),
+
+    // 🔒 PR-08: Granular Feature Gating
+    // Product listing report right
+    canViewRep001: rights['REP_001'] === 1,
+    
+    // Top selling report right (Usually SuperAdmin only)
+    canViewRep002: rights['REP_002'] === 1,
+    
+    // User management module right
+    canManageUsers: rights['ADM_USER'] === 1,
+
+    // Button Gating convenience (for PR-06 compatibility)
+    canEdit:   rights['PRD_EDIT'] === 1,
+    canDelete: rights['PRD_DEL'] === 1,
+    canAdd:    rights['PRD_ADD'] === 1,
   };
 
   return (
