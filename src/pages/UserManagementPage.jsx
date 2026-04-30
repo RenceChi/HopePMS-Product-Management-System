@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRights } from '../context/UserRightsContext';
 import { supabase } from '../db/supabase';
+import { setUserStatus } from '../services/userService'; // 1. IMPORT ADDED
 
 export default function UserManagementPage() {
   const { currentUser } = useAuth();
@@ -11,33 +12,53 @@ export default function UserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🚀 Fetch users from Supabase
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        setLoading(true);
-        setError(null);
+  // 2. MOVED FETCH OUTSIDE USEEFFECT SO THE BUTTON CAN USE IT TO REFRESH
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Fetching from the 'user' table
-        const { data, error: fetchError } = await supabase
-          .from('user')
-          .select('*')
-          .order('username', { ascending: true });
+      const { data, error: fetchError } = await supabase
+        .from('user')
+        .select('userid, username, firstname, lastname, email, user_type, record_status, stamp')
+        .order('username', { ascending: true });
 
-        if (fetchError) throw fetchError;
-        setUsers(data || []);
-      } catch (err) {
-        console.error('Error fetching users:', err.message);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+      if (fetchError) throw fetchError;
+      setUsers(data || []);
+    } catch (err) {
+      console.error('Error fetching users:', err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  // Trigger initial fetch
+  useEffect(() => {
     if (canManageUsers) {
       fetchUsers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManageUsers]);
+
+  // 3. NEW HANDLER ADDED HERE
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.record_status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    try {
+      // Set to loading briefly to show UI reaction
+      setLoading(true);
+      await setUserStatus(
+        user.userid,
+        newStatus,
+        currentUser?.userid
+      );
+      // Refresh the list after DB updates
+      await fetchUsers(); 
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
   // 🔒 SECURITY CHECK: If they don't have ADM_USER right, block the whole page
   if (!canManageUsers) {
@@ -117,8 +138,10 @@ export default function UserManagementPage() {
                           {isSuperAdminRow ? '🔒 Immutable' : 'Edit Rights'}
                         </button>
                         
+                        {/* 4. BUTTON WIRED UP HERE */}
                         <button
                           disabled={isSuperAdminRow}
+                          onClick={() => !isSuperAdminRow && handleToggleStatus(user)}
                           className={`text-[10px] font-bold uppercase px-3 py-1 rounded transition-all ${
                             isSuperAdminRow 
                               ? 'text-gray-300 cursor-not-allowed' 
