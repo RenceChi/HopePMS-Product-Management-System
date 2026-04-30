@@ -141,7 +141,13 @@ function SidebarContent({ onClose, isMobile }) {
           </div>
         )}
       </nav>
-      {/* ... App Version Footer ... */}
+      <div className="px-4 py-3 flex items-center gap-2 whitespace-nowrap overflow-hidden shrink-0"
+        style={{ borderTop: '1px solid rgba(133,159,61,0.1)' }}>
+        <div className="w-1.25 h-1.25 rounded-full shrink-0" style={{ background: '#859F3D' }} />
+        <span className="text-[9px] tracking-[0.12em] uppercase" style={{ color: 'rgba(133,159,61,0.4)' }}>
+          Hope PMS v1.0
+        </span>
+      </div>
     </div>
   );
 }

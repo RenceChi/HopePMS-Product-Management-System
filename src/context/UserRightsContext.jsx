@@ -12,12 +12,18 @@ export const useRights = () => {
 };
 
 export const UserRightsProvider = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading} = useAuth();
   const [rights, setRights] = useState({});
   const [rightsLoading, setRightsLoading] = useState(true);
 
+  
   useEffect(() => {
-    if (!currentUser?.userid) {
+    // Wait for AuthContext to finish resolving before doing anything
+    if (loading) return;
+
+    const uid = currentUser?.userid;
+
+    if (!uid) {
       setRights({});
       setRightsLoading(false);
       return;
@@ -29,7 +35,7 @@ export const UserRightsProvider = ({ children }) => {
         const { data, error } = await supabase
           .from('user_module_rights')
           .select('right_id, rights_value')
-          .eq('userid', currentUser.userid)
+          .eq('userid', uid)
           .eq('record_status', 'ACTIVE');
 
         if (error) throw error;
@@ -38,7 +44,6 @@ export const UserRightsProvider = ({ children }) => {
         data.forEach(row => {
           rightsMap[row.right_id] = row.rights_value;
         });
-
         setRights(rightsMap);
       } catch (err) {
         console.error("Failed to fetch user rights:", err);
@@ -49,7 +54,7 @@ export const UserRightsProvider = ({ children }) => {
     };
 
     fetchRights();
-  }, [currentUser?.userid]);
+  }, [currentUser?.userid, loading]); // ← wait for loading to settle
 
   const userType = currentUser?.user_type ?? 'USER';
 
