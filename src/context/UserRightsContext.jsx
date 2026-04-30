@@ -11,11 +11,10 @@ export const useRights = () => {
 };
 
 export const UserRightsProvider = ({ children }) => {
-  const { currentUser, loading} = useAuth();
+  const { currentUser, loading } = useAuth();
   const [rights, setRights] = useState({});
   const [rightsLoading, setRightsLoading] = useState(true);
 
-  
   useEffect(() => {
     // Wait for AuthContext to finish resolving before doing anything
     if (loading) return;
@@ -32,7 +31,7 @@ export const UserRightsProvider = ({ children }) => {
       setRightsLoading(true);
       try {
         const { data, error } = await supabase
-          .from('user_module_rights')
+          .from('user_module_rights') // ✅ Confirmed Lowercase
           .select('right_id, rights_value')
           .eq('userid', uid)
           .eq('record_status', 'ACTIVE');
@@ -40,9 +39,11 @@ export const UserRightsProvider = ({ children }) => {
         if (error) throw error;
 
         const rightsMap = {};
-        data.forEach(row => {
-          rightsMap[row.right_id] = row.rights_value;
-        });
+        if (data) {
+          data.forEach(row => {
+            rightsMap[row.right_id] = row.rights_value;
+          });
+        }
         setRights(rightsMap);
       } catch (err) {
         console.error("Failed to fetch user rights:", err);
@@ -53,12 +54,10 @@ export const UserRightsProvider = ({ children }) => {
     };
 
     fetchRights();
-  }, [currentUser?.userid, loading]); // ← wait for loading to settle
+  }, [currentUser?.userid, loading]);
 
   const userType = currentUser?.user_type ?? 'USER';
 
-  // ── PR-08: GRANULAR PERMISSION FLAGS ───────────────────────
-  // We use the 'rights' map to determine visibility of specific items
   const value = {
     rights,
     rightsLoading,
@@ -69,21 +68,16 @@ export const UserRightsProvider = ({ children }) => {
     isAdmin:      userType === 'ADMIN',
     isSuperAdmin: userType === 'SUPERADMIN',
 
-    // Global Gating (Still used for route protection)
+    // Global Gating
     canAccessAdmin: ['ADMIN', 'SUPERADMIN'].includes(userType),
     canViewDeleted: ['ADMIN', 'SUPERADMIN'].includes(userType),
 
-    // 🔒 PR-08: Granular Feature Gating
-    // Product listing report right
+    // 🔒 PR-08/09: Granular Feature Gating
     canViewRep001: rights['REP_001'] === 1,
-    
-    // Top selling report right (Usually SuperAdmin only)
     canViewRep002: rights['REP_002'] === 1,
-    
-    // User management module right
     canManageUsers: rights['ADM_USER'] === 1,
 
-    // Button Gating convenience (for PR-06 compatibility)
+    // Button Gating convenience
     canEdit:   rights['PRD_EDIT'] === 1,
     canDelete: rights['PRD_DEL'] === 1,
     canAdd:    rights['PRD_ADD'] === 1,
