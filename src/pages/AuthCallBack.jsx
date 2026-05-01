@@ -27,7 +27,7 @@ export default function AuthCallBack() {
               .single();
 
             if (data) { userRow = data; break; }
-            await new Promise(res => setTimeout(res, 800));
+            await new Promise(res => setTimeout(res, 1500));
           }
 
           if (!userRow || userRow.record_status !== 'ACTIVE') {
