@@ -75,26 +75,29 @@ export const AuthProvider = ({ children }) => {
 
     // Auth state listener — handles login, logout, token refresh
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
+    (event, session) => {
+      setSession(session);
 
-        // On SIGNED_OUT reset the guard so the next login fetches fresh
-        if (event === 'SIGNED_OUT') {
-          lastFetchedUid.current = null;
-          setCurrentUser(null);
-          setLoading(false);
-          return;
-        }
-
-        // On TOKEN_REFRESHED the user hasn't changed — skip DB refetch
-        if (event === 'TOKEN_REFRESHED') {
-          setSession(session);
-          return;
-        }
-
-        fetchAndMergeUser(session);
+      if (event === 'SIGNED_OUT') {
+        lastFetchedUid.current = null;
+        setCurrentUser(null);
+        setLoading(false);
+        return;
       }
-    );
+
+      if (event === 'TOKEN_REFRESHED') {
+        setSession(session);
+        return;
+      }
+
+      // ✅ ADD THIS BLOCK
+      if (event === 'SIGNED_IN') {
+        lastFetchedUid.current = null; // reset so same-account re-login isn't blocked
+      }
+
+      fetchAndMergeUser(session);
+    }
+  );
 
     return () => subscription.unsubscribe();
   }, []);
