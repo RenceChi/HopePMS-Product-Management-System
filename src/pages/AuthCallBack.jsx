@@ -9,18 +9,28 @@ import { supabase } from '../db/supabase';
  **/
 export default function AuthCallBack() {
   const navigate = useNavigate();
+  let handled = false;
 
   useEffect(() => {
+    let handled = false;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          const { data, error } = await supabase
-            .from('user')
-            .select('record_status')
-            .eq('userid', session.user.id)
-            .single();
+         handled = true; // ← block any second SIGNED_IN from re-running this
 
-          if (error || !data || data.record_status !== 'ACTIVE') {
+          let userRow = null;
+          for (let i = 0; i < 5; i++) {
+            const { data } = await supabase
+              .from('user')
+              .select('record_status')
+              .eq('userid', session.user.id)
+              .single();
+
+            if (data) { userRow = data; break; }
+            await new Promise(res => setTimeout(res, 800));
+          }
+
+          if (!userRow || userRow.record_status !== 'ACTIVE') {
             await supabase.auth.signOut();
             navigate('/login?error=inactive', { replace: true });
           } else {
