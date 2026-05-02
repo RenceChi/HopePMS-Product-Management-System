@@ -1,18 +1,19 @@
-// src/components/EditUserTypeModal.jsx
+// src/components/EditRightsModal.jsx
 import { useState } from 'react';
 import { supabase } from '../db/supabase';
 import { makeStamp } from '../utils/stampHelper';
 import { useAuth } from '../context/AuthContext';
 
-const USER_TYPES = ['USER', 'ADMIN', 'SUPERADMIN'];
+// ── Only USER and ADMIN — SUPERADMIN cannot be assigned via this modal ─────────
+// Per project guide: SUPERADMIN is a protected role, cannot be assigned by UI
+const USER_TYPES = ['USER', 'ADMIN'];
 
 const typeDescriptions = {
-  USER:       'Can view products, manage their own data.',
-  ADMIN:      'Can manage products, view reports, and manage users.',
-  SUPERADMIN: 'Full system access including all reports and admin functions.',
+  USER:  'Can view products, manage their own data, and view REP-001.',
+  ADMIN: 'Can manage products, view reports, and manage users.',
 };
 
-export default function EditUserTypeModal({ user, onClose, onSaved }) {
+export default function EditRightsModal({ user, onClose, onSaved }) {
   const { currentUser } = useAuth();
   const [selectedType, setSelectedType] = useState(user?.user_type ?? 'USER');
   const [saving, setSaving]             = useState(false);
@@ -39,7 +40,7 @@ export default function EditUserTypeModal({ user, onClose, onSaved }) {
       onSaved?.();
       onClose();
     } catch (err) {
-      console.error('EditUserTypeModal save error:', err);
+      console.error('EditRightsModal save error:', err);
       setError(err.message);
     } finally {
       setSaving(false);
@@ -70,7 +71,7 @@ export default function EditUserTypeModal({ user, onClose, onSaved }) {
           style={{ borderBottom: '1px solid rgba(133,159,61,0.1)' }}
         >
           <div>
-            <h2 className="text-base font-bold" style={{ color: '#1A1A19' }}>Edit User Type</h2>
+            <h2 className="text-base font-bold" style={{ color: '#1A1A19' }}>Edit User Role</h2>
             <p className="text-xs mt-0.5" style={{ color: 'rgba(26,26,25,0.45)' }}>
               {user?.username}
               <span
@@ -123,9 +124,7 @@ export default function EditUserTypeModal({ user, onClose, onSaved }) {
                     border: isSelected
                       ? '1.5px solid #31511E'
                       : '1.5px solid rgba(133,159,61,0.15)',
-                    background: isSelected
-                      ? 'rgba(133,159,61,0.07)'
-                      : 'transparent',
+                    background: isSelected ? 'rgba(133,159,61,0.07)' : 'transparent',
                     cursor: saving ? 'not-allowed' : 'pointer',
                   }}
                 >
@@ -137,9 +136,7 @@ export default function EditUserTypeModal({ user, onClose, onSaved }) {
                       background: isSelected ? '#31511E' : 'transparent',
                     }}
                   >
-                    {isSelected && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
+                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                   </div>
                   <div>
                     <p className="text-sm font-bold" style={{ color: isSelected ? '#31511E' : '#1A1A19' }}>
@@ -153,6 +150,8 @@ export default function EditUserTypeModal({ user, onClose, onSaved }) {
               );
             })}
           </div>
+
+          {/* Note about SUPERADMIN */}
         </div>
 
         {/* ── Footer ── */}
