@@ -11,22 +11,8 @@ import MainLayout from './components/MainLayout';
 import ProductListPage from './pages/ProductListPage';
 import DeletedItemsPage from './pages/DeletedItemsPage';
 import UserManagementPage from './pages/UserManagementPage';
-
-
-/* ── Placeholder pages — replace in Sprint 2/3 PRs ── */
-const ReportsPage = () => (
-  <div className="p-4">
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Reports</h1>
-    <p className="text-xs text-[#859F3D]">View system reports here.</p>
-  </div>
-);
-
-const AdminPage = () => (
-  <div className="p-4">
-    <h1 className="text-xl font-bold text-[#31511E] mb-1">Admin Dashboard</h1>
-    <p className="text-xs text-[#859F3D]">Manage users and system settings.</p>
-  </div>
-);
+import ProductReportPage from './pages/ProductReportPage';   // REP_001
+import TopSellingPage from './pages/TopSellingPage';         // REP_002
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -52,10 +38,20 @@ function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/reports" element={
+        {/* REP_001 — Product Price Report (all authenticated roles) */}
+        <Route path="/reports/product-listing" element={
           <ProtectedRoute>
             <MainLayout user={currentUser}>
-              <ReportsPage />
+              <ProductReportPage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* REP_002 — Top Selling Report (SUPERADMIN only — page self-guards via canViewRep002) */}
+        <Route path="/reports/top-selling" element={
+          <ProtectedRoute>
+            <MainLayout user={currentUser}>
+              <TopSellingPage />
             </MainLayout>
           </ProtectedRoute>
         } />
@@ -64,7 +60,7 @@ function App() {
         <Route path="/admin" element={
           <AdminRoute>
             <MainLayout user={currentUser}>
-              <UserManagementPage /> {/* Change AdminPage to UserManagementPage */}
+              <UserManagementPage />
             </MainLayout>
           </AdminRoute>
         } />
