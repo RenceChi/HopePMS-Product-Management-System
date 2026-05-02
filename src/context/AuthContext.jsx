@@ -10,42 +10,30 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession]         = useState(null);
   const [loading, setLoading]         = useState(true);
 
-  // Guard ref — tracks the last session user ID we fetched for.
-  // Prevents the double-call that happens because getSession() and
-  // onAuthStateChange(INITIAL_SESSION) both fire on mount and both
-  // previously triggered fetchAndMergeUser for the same session.
-  const lastFetchedUid = useRef(null);
+  const fetchInFlight = useRef(false);
 
   useEffect(() => {
     const fetchAndMergeUser = async (currentSession) => {
       if (!currentSession?.user) {
-        lastFetchedUid.current = null;
+        fetchInFlight.current = false;
         setCurrentUser(null);
         setLoading(false);
         return;
       }
 
-      const uid = currentSession.user.id;
-
-      // Skip if we already fetched for this exact user ID.
-      // This deduplicates the getSession() + INITIAL_SESSION double-fire.
-      if (lastFetchedUid.current === uid) {
-        setLoading(false);
-        return;
-      }
-      lastFetchedUid.current = uid;
+      // Block concurrent fetches
+      if (fetchInFlight.current) return;
+      fetchInFlight.current = true;
 
       try {
         const { data: userRow, error } = await supabase
           .from('user')
           .select('userid, username, firstname, lastname, user_type, record_status')
-          .eq('userid', uid)
+          .eq('userid', currentSession.user.id)
           .single();
 
         if (error || !userRow) {
           console.error('Error fetching user row:', error);
-          // PENDING — holds ProtectedRoute in null state instead of
-          // triggering a premature signOut + redirect to /login?error=inactive
           setCurrentUser({
             ...currentSession.user,
             user_type:     'USER',
@@ -56,48 +44,47 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error('fetchAndMergeUser threw:', err);
-        // PENDING here too — catch block should never signOut the user
         setCurrentUser({
           ...currentSession.user,
           user_type:     'USER',
           record_status: 'PENDING',
         });
       } finally {
+        fetchInFlight.current = false;
         setLoading(false);
       }
     };
 
-    // Initial session check on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      fetchAndMergeUser(session);
-    });
-
-    // Auth state listener — handles login, logout, token refresh
+    // ✅ REMOVED getSession() entirely — onAuthStateChange handles
+    // the initial session via INITIAL_SESSION event on mount,
+    // which eliminates the race condition between the two callers.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      setSession(session);
-
-      if (event === 'SIGNED_OUT') {
-        lastFetchedUid.current = null;
-        setCurrentUser(null);
-        setLoading(false);
-        return;
-      }
-
-      if (event === 'TOKEN_REFRESHED') {
+      (event, session) => {
         setSession(session);
-        return;
-      }
 
-      // ✅ ADD THIS BLOCK
-      if (event === 'SIGNED_IN') {
-        lastFetchedUid.current = null; // reset so same-account re-login isn't blocked
-      }
+        if (event === 'SIGNED_OUT') {
+          fetchInFlight.current = false;
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
 
-      fetchAndMergeUser(session);
-    }
-  );
+        if (event === 'TOKEN_REFRESHED') {
+          return;
+        }
+
+        // INITIAL_SESSION fires on mount (replaces getSession)
+        // SIGNED_IN fires on login
+        // Both should fetch the user row fresh
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          fetchInFlight.current = false; // reset so this event always fetches
+          fetchAndMergeUser(session);
+          return;
+        }
+
+        fetchAndMergeUser(session);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
