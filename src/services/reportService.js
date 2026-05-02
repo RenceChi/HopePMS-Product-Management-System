@@ -48,8 +48,11 @@ export async function getProductPriceReport() {
  REP_002 — Top-Selling Products Report
  Access: SUPERADMIN only (confidential executive/BI data)
  
- Returns the top 10 products ranked by total quantity sold across
+ Returns the top 10 ACTIVE products ranked by total quantity sold across
  all sales transactions, joining salesdetail → product.
+ 
+ Only ACTIVE products are included — deactivated products are excluded
+ from the ranking even if they have historical sales data.
  **/
 export async function getTopSellingReport() {
   const { data, error } = await supabase
@@ -57,11 +60,13 @@ export async function getTopSellingReport() {
     .select(`
       prodcode,
       quantity,
-      product (
+      product!inner (
         description,
-        unit
+        unit,
+        record_status
       )
-    `);
+    `)
+    .eq('product.record_status', 'ACTIVE'); // ← only include ACTIVE products
 
   if (error) throw error;
 
