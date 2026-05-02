@@ -17,6 +17,30 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+// ── CSV Export Helper ──────────────────────────────────────────────────────────
+// Per project guide Sprint 3: ProductReportPage includes CSV export
+
+function exportToCSV(rows, search) {
+  const headers = ['Product Code', 'Description', 'Unit', 'Current Price', 'Effective Date'];
+
+  const csvRows = rows.map(r => [
+    r.prodcode      ?? '',
+    r.description   ?? '',
+    r.unit          ?? '',
+    r.current_price != null ? Number(r.current_price).toFixed(2) : '',
+    r.effective_date ?? '',
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+  const csv      = [headers.join(','), ...csvRows].join('\n');
+  const blob     = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url      = URL.createObjectURL(blob);
+  const link     = document.createElement('a');
+  link.href      = url;
+  link.download  = `product_report_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 const SkeletonRow = () => (
@@ -63,10 +87,10 @@ const EmptyState = ({ search }) => (
 export default function ProductReportPage() {
   const { canViewRep001 } = useRights();
 
-  const [rows, setRows]         = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
-  const [search, setSearch]     = useState('');
+  const [rows, setRows]             = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(null);
+  const [search, setSearch]         = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'prodcode', dir: 'asc' });
 
   const fetchReport = async () => {
@@ -100,7 +124,7 @@ export default function ProductReportPage() {
   const SortIcon = ({ colKey }) => {
     const isActive = sortConfig.key === colKey;
     return (
-      <span className="inline-flex flex-col ml-1 opacity-40" style={{ opacity: isActive ? 1 : 0.3 }}>
+      <span className="inline-flex flex-col ml-1" style={{ opacity: isActive ? 1 : 0.3 }}>
         <svg width="8" height="8" viewBox="0 0 8 8" fill={isActive && sortConfig.dir === 'asc' ? '#31511E' : '#859F3D'}>
           <path d="M4 1L7 5H1z"/>
         </svg>
@@ -160,7 +184,27 @@ export default function ProductReportPage() {
           </p>
         </div>
 
+        {/* ── Action buttons ── */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
+
+          {/* CSV Export — only when data is available */}
+          {!loading && filtered.length > 0 && (
+            <button
+              onClick={() => exportToCSV(filtered, search)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-150"
+              style={{ background: 'rgba(133,159,61,0.1)', color: '#31511E' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#31511E'; e.currentTarget.style.color = '#F6FCDF'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(133,159,61,0.1)'; e.currentTarget.style.color = '#31511E'; }}
+              title="Export current view to CSV"
+            >
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Export CSV
+            </button>
+          )}
+
           {/* Refresh */}
           <button
             onClick={fetchReport}
@@ -294,10 +338,10 @@ export default function ProductReportPage() {
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(133,159,61,0.1)' }}>
                 {[
-                  { label: 'Product Code', key: 'prodcode' },
-                  { label: 'Description',  key: 'description' },
-                  { label: 'Unit',         key: 'unit' },
-                  { label: 'Current Price',key: 'current_price' },
+                  { label: 'Product Code',  key: 'prodcode' },
+                  { label: 'Description',   key: 'description' },
+                  { label: 'Unit',          key: 'unit' },
+                  { label: 'Current Price', key: 'current_price' },
                   { label: 'Effective Date',key: 'effective_date' },
                 ].map(col => (
                   <th
@@ -327,7 +371,6 @@ export default function ProductReportPage() {
                       onMouseEnter={e => { e.currentTarget.style.background = 'rgba(133,159,61,0.03)'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                     >
-                      {/* Product Code */}
                       <td className="px-4 py-3.5">
                         <span
                           className="font-mono text-xs font-bold px-2 py-0.5 rounded-lg"
@@ -336,13 +379,9 @@ export default function ProductReportPage() {
                           {row.prodcode}
                         </span>
                       </td>
-
-                      {/* Description */}
                       <td className="px-4 py-3.5">
                         <span className="text-sm" style={{ color: '#1A1A19' }}>{row.description}</span>
                       </td>
-
-                      {/* Unit */}
                       <td className="px-4 py-3.5">
                         <span
                           className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md"
@@ -351,8 +390,6 @@ export default function ProductReportPage() {
                           {row.unit ?? '—'}
                         </span>
                       </td>
-
-                      {/* Price */}
                       <td className="px-4 py-3.5">
                         {row.current_price != null ? (
                           <span className="text-sm font-bold" style={{ color: '#31511E' }}>
@@ -362,8 +399,6 @@ export default function ProductReportPage() {
                           <span className="text-xs italic" style={{ color: 'rgba(26,26,25,0.3)' }}>No price</span>
                         )}
                       </td>
-
-                      {/* Effective Date */}
                       <td className="px-4 py-3.5">
                         <span className="text-xs" style={{ color: 'rgba(26,26,25,0.55)' }}>
                           {formatDate(row.effective_date)}
