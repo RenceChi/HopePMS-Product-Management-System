@@ -10,7 +10,6 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession]         = useState(null);
   const [loading, setLoading]         = useState(true);
 
-  // ✅ CHANGED: replaced lastFetchedUid with fetchInFlight
   const fetchInFlight = useRef(false);
 
   useEffect(() => {
@@ -22,11 +21,8 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      if (fetchInFlight.current) {
-        setLoading(false);
-        return;
-      }
-
+      // Block concurrent fetches
+      if (fetchInFlight.current) return;
       fetchInFlight.current = true;
 
       try {
@@ -59,13 +55,9 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    // Initial session check on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      fetchAndMergeUser(session);
-    });
-
-    // Auth state listener — handles login, logout, token refresh
+    // ✅ REMOVED getSession() entirely — onAuthStateChange handles
+    // the initial session via INITIAL_SESSION event on mount,
+    // which eliminates the race condition between the two callers.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -78,12 +70,16 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (event === 'TOKEN_REFRESHED') {
-          setSession(session);
           return;
         }
 
-        if (event === 'SIGNED_IN') {
-          fetchInFlight.current = false;
+        // INITIAL_SESSION fires on mount (replaces getSession)
+        // SIGNED_IN fires on login
+        // Both should fetch the user row fresh
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          fetchInFlight.current = false; // reset so this event always fetches
+          fetchAndMergeUser(session);
+          return;
         }
 
         fetchAndMergeUser(session);
