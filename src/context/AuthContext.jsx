@@ -19,54 +19,47 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchAndMergeUser = async (currentSession) => {
       if (!currentSession?.user) {
-        lastFetchedUid.current = null;
+        fetchInFlight.current = false;
         setCurrentUser(null);
         setLoading(false);
         return;
       }
 
-      const uid = currentSession.user.id;
-
-      // Skip if we already fetched for this exact user ID.
-      // This deduplicates the getSession() + INITIAL_SESSION double-fire.
-      if (lastFetchedUid.current === uid) {
+      // If already fetching, skip — but don't block future fetches
+      if (fetchInFlight.current) {
         setLoading(false);
         return;
       }
-      lastFetchedUid.current = uid;
+
+      fetchInFlight.current = true;
 
       try {
         const { data: userRow, error } = await supabase
           .from('user')
           .select('userid, username, firstname, lastname, user_type, record_status')
-          .eq('userid', uid)
+          .eq('userid', currentSession.user.id)
           .single();
 
         if (error || !userRow) {
-          console.error('Error fetching user row:', error);
-          // PENDING — holds ProtectedRoute in null state instead of
-          // triggering a premature signOut + redirect to /login?error=inactive
           setCurrentUser({
             ...currentSession.user,
-            user_type:     'USER',
+            user_type: 'USER',
             record_status: 'PENDING',
           });
         } else {
           setCurrentUser({ ...currentSession.user, ...userRow });
         }
       } catch (err) {
-        console.error('fetchAndMergeUser threw:', err);
-        // PENDING here too — catch block should never signOut the user
         setCurrentUser({
           ...currentSession.user,
-          user_type:     'USER',
+          user_type: 'USER',
           record_status: 'PENDING',
         });
       } finally {
+        fetchInFlight.current = false;
         setLoading(false);
       }
     };
-
     // Initial session check on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -79,7 +72,7 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
 
       if (event === 'SIGNED_OUT') {
-        lastFetchedUid.current = null;
+        fetchInFlight.current = false;
         setCurrentUser(null);
         setLoading(false);
         return;
@@ -92,7 +85,7 @@ export const AuthProvider = ({ children }) => {
 
       // ✅ ADD THIS BLOCK
       if (event === 'SIGNED_IN') {
-        lastFetchedUid.current = null; // reset so same-account re-login isn't blocked
+        fetchInFlight.current = false; // reset so same-account re-login isn't blocked
       }
 
       fetchAndMergeUser(session);
