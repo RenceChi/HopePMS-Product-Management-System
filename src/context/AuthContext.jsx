@@ -10,11 +10,8 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession]         = useState(null);
   const [loading, setLoading]         = useState(true);
 
-  // Guard ref — tracks the last session user ID we fetched for.
-  // Prevents the double-call that happens because getSession() and
-  // onAuthStateChange(INITIAL_SESSION) both fire on mount and both
-  // previously triggered fetchAndMergeUser for the same session.
-  const lastFetchedUid = useRef(null);
+  // ✅ CHANGED: replaced lastFetchedUid with fetchInFlight
+  const fetchInFlight = useRef(false);
 
   useEffect(() => {
     const fetchAndMergeUser = async (currentSession) => {
@@ -25,7 +22,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // If already fetching, skip — but don't block future fetches
       if (fetchInFlight.current) {
         setLoading(false);
         return;
@@ -41,18 +37,20 @@ export const AuthProvider = ({ children }) => {
           .single();
 
         if (error || !userRow) {
+          console.error('Error fetching user row:', error);
           setCurrentUser({
             ...currentSession.user,
-            user_type: 'USER',
+            user_type:     'USER',
             record_status: 'PENDING',
           });
         } else {
           setCurrentUser({ ...currentSession.user, ...userRow });
         }
       } catch (err) {
+        console.error('fetchAndMergeUser threw:', err);
         setCurrentUser({
           ...currentSession.user,
-          user_type: 'USER',
+          user_type:     'USER',
           record_status: 'PENDING',
         });
       } finally {
@@ -60,6 +58,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
+
     // Initial session check on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -68,29 +67,28 @@ export const AuthProvider = ({ children }) => {
 
     // Auth state listener — handles login, logout, token refresh
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      setSession(session);
-
-      if (event === 'SIGNED_OUT') {
-        fetchInFlight.current = false;
-        setCurrentUser(null);
-        setLoading(false);
-        return;
-      }
-
-      if (event === 'TOKEN_REFRESHED') {
+      (event, session) => {
         setSession(session);
-        return;
-      }
 
-      // ✅ ADD THIS BLOCK
-      if (event === 'SIGNED_IN') {
-        fetchInFlight.current = false; // reset so same-account re-login isn't blocked
-      }
+        if (event === 'SIGNED_OUT') {
+          fetchInFlight.current = false;
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
 
-      fetchAndMergeUser(session);
-    }
-  );
+        if (event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          return;
+        }
+
+        if (event === 'SIGNED_IN') {
+          fetchInFlight.current = false;
+        }
+
+        fetchAndMergeUser(session);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
