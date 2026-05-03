@@ -90,6 +90,6 @@
 
 - **Notes/Issues:**
   - Double login bug still exists.
-  - New user record_status is 'ACTIVE' already.
+  - New user record_status is 'ACTIVE' already instead of 'INACTIVE'.
   - Google OAuth user is pending approval, but no user added to table in database.
   - Directly accessing routes regardless of authorization forces log out.
