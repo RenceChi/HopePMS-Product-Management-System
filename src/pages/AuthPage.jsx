@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../db/supabase';
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useRights } from '../context/UserRightsContext';
 
 /* ─── reusable field ─────────────────────────────── */
 const Field = ({ label, type = 'text', placeholder, value, onChange, error, extra }) => {
@@ -87,6 +89,15 @@ export default function AuthPage() {
   const [regData, setRegData] = useState({ firstname: '', lastname: '', username: '', email: '', password: '', confirm: '' });
   const [regErr, setRegErr] = useState({});
 
+  const { currentUser, loading: authLoading } = useAuth();
+  const { rightsLoading } = useRights();
+
+  useEffect(() => {
+    if (!authLoading && !rightsLoading && currentUser?.record_status === 'ACTIVE') {
+      navigate('/products', { replace: true });
+    }
+  }, [currentUser, authLoading, rightsLoading]);
+
   useEffect(() => {
   if (searchParams.get('error') === 'inactive') {
     setMsg({ type: 'error', text: 'Your account is pending approval. Please contact your administrator.' });
@@ -143,9 +154,8 @@ export default function AuthPage() {
     if (error) {
       setLoading(false);
       setMsg({ type: 'error', text: error.message });
-      return;
     }
-    navigate('/products');
+  
   };
 
 
