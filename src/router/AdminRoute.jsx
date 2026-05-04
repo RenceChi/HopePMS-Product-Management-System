@@ -1,13 +1,14 @@
-// src/router/AdminRoute.jsx
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useRights } from '../context/UserRightsContext';
 
 const AdminRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
+  const { rightsLoading } = useRights();
 
   // Wait for auth to resolve
-  if (loading) return null;
-
+  if (loading || rightsLoading) return null;
+  
   // Not logged in
   if (!currentUser) return <Navigate to="/login" replace />;
 
