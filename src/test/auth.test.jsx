@@ -6,6 +6,7 @@ import ProtectedRoute from '../router/ProtectedRoute';
 import AuthCallBack from '../pages/AuthCallBack';
 import * as supabaseModule from '../db/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useRights } from '../context/UserRightsContext';
 
 // ═══════════════════════════════════════════════════════════════
 // MOCKS
@@ -17,7 +18,7 @@ vi.mock('../db/supabase', () => ({
       getSession: vi.fn(),
       onAuthStateChange: vi.fn(),
       signInWithOAuth: vi.fn(),
-      signOut: vi.fn(),
+      signOut: vi.fn().mockResolvedValue({}),
     },
     from: vi.fn(),
   },
@@ -30,6 +31,11 @@ vi.mock('react-router-dom', async () => {
     useNavigate: vi.fn(),
   };
 });
+
+// Mock the UserRightsContext which ProtectedRoute depends on
+vi.mock('../context/UserRightsContext', () => ({
+  useRights: vi.fn(),
+}));
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
@@ -72,7 +78,7 @@ describe('Google OAuth Flow', () => {
       user: { id: 'google-123', email: 'new@gmail.com' },
     };
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+    supabaseModule.supabase.auth.onAuthStateChange.mockImplementation((cb) => {
       cb('SIGNED_IN', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
@@ -85,11 +91,9 @@ describe('Google OAuth Flow', () => {
       }),
     };
 
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
+    supabaseModule.supabase.from.mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
-
-    supabaseModule.supabase.auth.signOut = vi.fn().mockResolvedValue({});
 
     render(
       <Router>
@@ -111,7 +115,7 @@ describe('Google OAuth Flow', () => {
   it('allows ACTIVE OAuth user to /products', async () => {
     const session = { user: { id: 'active-123' } };
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+    supabaseModule.supabase.auth.onAuthStateChange.mockImplementation((cb) => {
       cb('SIGNED_IN', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
@@ -124,7 +128,7 @@ describe('Google OAuth Flow', () => {
       }),
     };
 
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
+    supabaseModule.supabase.from.mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
 
@@ -153,6 +157,8 @@ describe('ProtectedRoute - INACTIVE user', () => {
     vi.clearAllMocks();
     mockNavigate = vi.fn();
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+    // Setup rights context to not block loading
+    vi.mocked(useRights).mockReturnValue({ rightsLoading: false });
   });
 
   it('blocks inactive user and signs out', async () => {
@@ -160,8 +166,8 @@ describe('ProtectedRoute - INACTIVE user', () => {
       user: { id: 'inactive-user', email: 'inactive@test.com' },
     };
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
-      cb('INITIAL_SESSION', session); // 🔥 critical
+    supabaseModule.supabase.auth.onAuthStateChange.mockImplementation((cb) => {
+      cb('INITIAL_SESSION', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
@@ -173,11 +179,9 @@ describe('ProtectedRoute - INACTIVE user', () => {
       }),
     };
 
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
+    supabaseModule.supabase.from.mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
-
-    supabaseModule.supabase.auth.signOut = vi.fn();
 
     render(
       <Router>
@@ -204,6 +208,7 @@ describe('ProtectedRoute - INACTIVE user', () => {
 describe('ProtectedRoute - ACTIVE user', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useRights).mockReturnValue({ rightsLoading: false });
   });
 
   it('renders protected content', async () => {
@@ -211,7 +216,7 @@ describe('ProtectedRoute - ACTIVE user', () => {
       user: { id: 'active-user', email: 'active@test.com' },
     };
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+    supabaseModule.supabase.auth.onAuthStateChange.mockImplementation((cb) => {
       cb('INITIAL_SESSION', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
@@ -233,7 +238,7 @@ describe('ProtectedRoute - ACTIVE user', () => {
       }),
     };
 
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
+    supabaseModule.supabase.from.mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
 
@@ -247,9 +252,9 @@ describe('ProtectedRoute - ACTIVE user', () => {
       </Router>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('protected-content')).toBeInTheDocument();
-    });
+    // Wait for the loader to finish and content to appear
+    const content = await screen.findByTestId('protected-content');
+    expect(content).toBeInTheDocument();
   });
 
   it('merges DB user data correctly', async () => {
@@ -257,7 +262,7 @@ describe('ProtectedRoute - ACTIVE user', () => {
       user: { id: 'merge-user', email: 'merge@test.com' },
     };
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+    supabaseModule.supabase.auth.onAuthStateChange.mockImplementation((cb) => {
       cb('INITIAL_SESSION', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
@@ -279,7 +284,7 @@ describe('ProtectedRoute - ACTIVE user', () => {
       }),
     };
 
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
+    supabaseModule.supabase.from.mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
 
@@ -292,10 +297,10 @@ describe('ProtectedRoute - ACTIVE user', () => {
     );
 
     await waitFor(() => {
-      const user = JSON.parse(
-        screen.getByTestId('current-user').textContent
-      );
-
+      const userDisplay = screen.getByTestId('current-user').textContent;
+      if (userDisplay === 'null') throw new Error('User still null');
+      
+      const user = JSON.parse(userDisplay);
       expect(user.username).toBe('mergeuser');
       expect(user.record_status).toBe('ACTIVE');
     });
