@@ -93,3 +93,24 @@
   - New user record_status is 'ACTIVE' already instead of 'INACTIVE'.
   - Google OAuth user is pending approval, but no user added to table in database.
   - Directly accessing routes regardless of authorization forces log out.
+
+### Test Log 5:
+4 May 2026
+
+#### Test Files:
+- auth.test.jsx
+- rights.test.jsx
+- softdelete.test.jsx
+- sprint3.test.jsx
+
+#### Test Results:
+- auth.test.jsx (Passed)
+- rights.test.jsx (Passed)
+- softdelete.test.jsx (Passed)
+- sprint3.test.jsx (Passed)
+
+  - Test Files: 4 passed
+  - Tests: 52 passed
+
+- **Notes/Issues:**
+  - All known bugs fixed.

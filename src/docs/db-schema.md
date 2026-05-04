@@ -24,7 +24,7 @@
 | email         | VARCHAR      | UNIQUE, NOT NULL                                            |
 | username      | VARCHAR      | NULL                                                        |
 | user_type     | VARCHAR      | NULL, DEFAULT 'USER', CHECK ('SUPERADMIN', 'ADMIN', 'USER') |
-| record_status | VARCHAR      | NULL, DEFAULT 'ACTIVE'                                      |
+| record_status | VARCHAR      | NULL, DEFAULT 'INACTIVE'                                      |
 | firstname     | VARCHAR      | NULL                                                        |
 | lastname      | VARCHAR      | NULL                                                        |
 | stamp         | VARCHAR      | NULL                                                        |
