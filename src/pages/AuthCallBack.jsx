@@ -15,8 +15,8 @@ export default function AuthCallBack() {
     let handled = false;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-         handled = true; // ← block any second SIGNED_IN from re-running this
+        if (event === 'SIGNED_IN' && session && !handled) {
+         handled = true; 
 
           let userRow = null;
           for (let i = 0; i < 5; i++) {

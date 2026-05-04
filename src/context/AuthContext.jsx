@@ -21,7 +21,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Block concurrent fetches
       if (fetchInFlight.current) return;
       fetchInFlight.current = true;
 
@@ -34,21 +33,15 @@ export const AuthProvider = ({ children }) => {
 
         if (error || !userRow) {
           console.error('Error fetching user row:', error);
-          setCurrentUser({
-            ...currentSession.user,
-            user_type:     'USER',
-            record_status: 'PENDING',
-          });
+          await supabase.auth.signOut(); // clean signout if row missing
+          setCurrentUser(null);
         } else {
           setCurrentUser({ ...currentSession.user, ...userRow });
         }
       } catch (err) {
         console.error('fetchAndMergeUser threw:', err);
-        setCurrentUser({
-          ...currentSession.user,
-          user_type:     'USER',
-          record_status: 'PENDING',
-        });
+        await supabase.auth.signOut(); // clean signout on exception too
+        setCurrentUser(null);
       } finally {
         fetchInFlight.current = false;
         setLoading(false);

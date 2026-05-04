@@ -134,12 +134,18 @@ export default function AuthPage() {
 
     setLoading(true); setMsg({ type: '', text: '' });
 
-    const { error } = await supabase.auth.signInWithPassword({ email: loginData.email, password: loginData.password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password
+      });
     setLoading(false);
 
-    if (error) setMsg({ type: 'error', text: error.message });
-    else navigate('/products');
-
+    if (error) {
+      setLoading(false);
+      setMsg({ type: 'error', text: error.message });
+      return;
+    }
+    navigate('/products');
   };
 
 

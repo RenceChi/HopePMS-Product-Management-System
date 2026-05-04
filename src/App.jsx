@@ -32,9 +32,9 @@ function App() {
   const { currentUser, loading } = useAuth();
   const { rightsLoading } = useRights();
 
-  const isAuthCallback = window.location.pathname === '/auth/callback';
+  const isReady = !loading && !rightsLoading;
 
-  if ((loading || rightsLoading) && !isAuthCallback) return null;
+  
 
   return (
     <BrowserRouter>
@@ -83,11 +83,15 @@ function App() {
             never an intermediate null from a cold start race condition.
         ── */}
         <Route path="/" element={
-          <Navigate to={currentUser ? '/products' : '/login'} replace />
-        } />
-        <Route path="*" element={
-          <Navigate to={currentUser ? '/products' : '/login'} replace />
-        } />
+            isReady
+              ? <Navigate to={currentUser ? '/products' : '/login'} replace />
+              : null
+          } />
+          <Route path="*" element={
+            isReady
+              ? <Navigate to={currentUser ? '/products' : '/login'} replace />
+              : null
+          } />
       </Routes>
     </BrowserRouter>
   );
