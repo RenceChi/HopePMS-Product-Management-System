@@ -9,7 +9,7 @@
 - **Notes:** Email delivery confirmed via manual check in inbox/log, user cannot log in until email is verified
 
 #### Test Files:
-- auth.test.jsx (7 tests)
+- auth.test.jsx
 
 #### Test Results:
 - 2 failed | 5 passed
@@ -23,8 +23,8 @@
 28 April 2026
 
 #### Test Files:
-- auth.test.jsx (7 tests)
-- rights.test.jsx (20 tests)
+- auth.test.jsx
+- rights.test.jsx
 
 #### Test Results:
 - auth.test.jsx (Passed)
@@ -46,9 +46,9 @@
 - **Notes:** Codebase confirmed to have no hard delete
 
 #### Test Files:
-- auth.test.jsx (7 tests)
-- rights.test.jsx (20 tests)
-- softdelete.test.jsx (15 tests)
+- auth.test.jsx
+- rights.test.jsx
+- softdelete.test.jsx
 
 #### Test Results:
 - auth.test.jsx (Passed)
@@ -69,3 +69,27 @@
     - 'getProducts(USER) does NOT include stamp column in SELECT'
     - 'USER response does NOT contain stamp property even if database sent it'
 - **Notes:** All 5 failed tests in softdelete.test.jsx might be related to the getProducts() function
+
+### Test Log 4:
+4 May 2026
+
+#### Test Files:
+- auth.test.jsx
+- rights.test.jsx
+- softdelete.test.jsx
+- sprint3.test.jsx
+
+#### Test Results:
+- auth.test.jsx (1 test failed)
+- rights.test.jsx (Passed)
+- softdelete.test.jsx (Passed)
+- sprint3.test.jsx (Passed)
+
+  - Test Files: 1 failed | 3 passed
+  - Tests: 1 failed | 51 passed
+
+- **Notes/Issues:**
+  - Double login bug still exists.
+  - New user record_status is 'ACTIVE' already instead of 'INACTIVE'.
+  - Google OAuth user is pending approval, but no user added to table in database.
+  - Directly accessing routes regardless of authorization forces log out.

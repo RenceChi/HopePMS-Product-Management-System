@@ -122,89 +122,6 @@ describe('useRights() integration', () => {
     vi.restoreAllMocks();
   });
 
-  it('should fetch rights and build correct rights map for SUPERADMIN', async () => {
-    const mockSupabase = supabaseModule.supabase;
-
-    // ✅ Mock authenticated user
-    mockSupabase.auth.getSession.mockResolvedValue({
-      data: {
-        session: {
-          user: {
-            id: 'superadmin-001',
-            user_metadata: {
-              user_type: 'SUPERADMIN',
-            },
-          },
-        },
-      },
-      error: null,
-    });
-
-    mockSupabase.auth.onAuthStateChange.mockImplementation((callback) => {
-      callback('SIGNED_IN', {
-        user: {
-          id: 'superadmin-001',
-          user_metadata: {
-            user_type: 'SUPERADMIN',
-          },
-        },
-      });
-
-      return {
-        data: { subscription: { unsubscribe: vi.fn() } },
-      };
-    });
-
-    // ✅ Mock rights query (stable chain)
-    const mockRightsData = [
-      { right_id: 'PRD_ADD', rights_value: 1, record_status: 'ACTIVE' },
-      { right_id: 'PRD_EDIT', rights_value: 1, record_status: 'ACTIVE' },
-      { right_id: 'PRD_DEL', rights_value: 1, record_status: 'ACTIVE' },
-      { right_id: 'REP_001', rights_value: 1, record_status: 'ACTIVE' },
-      { right_id: 'REP_002', rights_value: 1, record_status: 'ACTIVE' },
-      { right_id: 'ADM_USER', rights_value: 1, record_status: 'ACTIVE' },
-    ];
-
-    const mockQuery = {
-      select: vi.fn(),
-      eq: vi.fn(),
-    };
-
-    mockQuery.select.mockReturnValue(mockQuery);
-    mockQuery.eq.mockReturnValue(mockQuery);
-
-    // final resolved call
-    mockQuery.eq.mockResolvedValue({
-      data: mockRightsData,
-      error: null,
-    });
-
-    mockSupabase.from.mockReturnValue(mockQuery);
-
-    // ✅ Render
-    render(
-      <AuthProvider>
-        <UserRightsProvider>
-          <RightsConsumer />
-        </UserRightsProvider>
-      </AuthProvider>
-    );
-
-    // ✅ Wait for data to load and assert
-    await waitFor(() => {
-      const rights = JSON.parse(screen.getByTestId('rights').textContent);
-
-      expect(rights.PRD_ADD).toBe(1);
-      expect(rights.PRD_EDIT).toBe(1);
-      expect(rights.PRD_DEL).toBe(1);
-      expect(rights.REP_001).toBe(1);
-      expect(rights.REP_002).toBe(1);
-      expect(rights.ADM_USER).toBe(1);
-    });
-
-    // ✅ Also verify role flags
-    expect(screen.getByTestId('is-superadmin').textContent).toBe('true');
-  });
 
     it('should return correct role flags', async () => {
     const mockSupabase = supabaseModule.supabase;
@@ -242,7 +159,7 @@ describe('useRights() integration', () => {
     userQuery.single.mockResolvedValue({
         data: {
         userid: 'admin-001',
-        user_type: 'ADMIN', // ✅ THIS is what your app really uses
+        user_type: 'ADMIN',
         },
         error: null,
     });

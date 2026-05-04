@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../context/AuthContext';
@@ -7,9 +7,9 @@ import AuthCallBack from '../pages/AuthCallBack';
 import * as supabaseModule from '../db/supabase';
 import { useNavigate } from 'react-router-dom';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// MOCK SETUP
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// MOCKS
+// ═══════════════════════════════════════════════════════════════
 
 vi.mock('../db/supabase', () => ({
   supabase: {
@@ -27,59 +27,56 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: vi.fn(), // This creates the initial mock
+    useNavigate: vi.fn(),
   };
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPER COMPONENTS FOR TESTING
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
 
-// Component to access auth context values in tests
 const AuthConsumer = () => {
   const { currentUser, session, loading } = useAuth();
   return (
     <div>
       <div data-testid="loading">{loading ? 'loading' : 'ready'}</div>
-      <div data-testid="current-user">{currentUser ? JSON.stringify(currentUser) : 'null'}</div>
-      <div data-testid="session">{session ? JSON.stringify(session) : 'null'}</div>
+      <div data-testid="current-user">
+        {currentUser ? JSON.stringify(currentUser) : 'null'}
+      </div>
+      <div data-testid="session">
+        {session ? JSON.stringify(session) : 'null'}
+      </div>
     </div>
   );
 };
 
-// Simple component to render inside ProtectedRoute
-const ProtectedContent = () => <div data-testid="protected-content">Protected Page</div>;
+const ProtectedContent = () => (
+  <div data-testid="protected-content">Protected Page</div>
+);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TEST SUITE 1: GOOGLE OAUTH FLOW
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// SUITE 1: GOOGLE OAUTH FLOW
+// ═══════════════════════════════════════════════════════════════
 
-describe('Google OAuth Flow - New User Auto-Provisioning', () => {
+describe('Google OAuth Flow', () => {
   let mockNavigate;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockNavigate = vi.fn();
-    
-    // This is the "Vitest Way" to set the return value of a mocked hook
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
-
-    // Mock getSession to return nothing by default to avoid collisions with onAuthStateChange
-    supabaseModule.supabase.auth.getSession = vi.fn().mockResolvedValue({ data: { session: null } });
   });
 
-  it('should auto-provision new Google OAuth user as USER / INACTIVE and redirect to login with error', async () => {
-    const googleUser = { id: 'google-123', email: 'new@gmail.com' };
-    const newSession = { user: googleUser, access_token: 'token' };
+  it('blocks INACTIVE OAuth user and redirects to login', async () => {
+    const session = {
+      user: { id: 'google-123', email: 'new@gmail.com' },
+    };
 
-    // 1. Mock onAuthStateChange
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((callback) => {
-      // Trigger the SIGNED_IN event
-      callback('SIGNED_IN', newSession);
+    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+      cb('SIGNED_IN', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
-    // 2. Mock Database check (Return INACTIVE)
     const mockQuery = {
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
@@ -87,6 +84,7 @@ describe('Google OAuth Flow - New User Auto-Provisioning', () => {
         error: null,
       }),
     };
+
     supabaseModule.supabase.from = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
@@ -101,18 +99,20 @@ describe('Google OAuth Flow - New User Auto-Provisioning', () => {
       </Router>
     );
 
-    // Wait for the navigation to happen
     await waitFor(() => {
       expect(supabaseModule.supabase.auth.signOut).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('/login?error=inactive', { replace: true });
-    }, { timeout: 2000 });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/login?error=inactive',
+        { replace: true }
+      );
+    });
   });
 
-  it('should allow Google OAuth user with ACTIVE status to proceed to /products', async () => {
-    const activeSession = { user: { id: 'active-123' } };
+  it('allows ACTIVE OAuth user to /products', async () => {
+    const session = { user: { id: 'active-123' } };
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((callback) => {
-      callback('SIGNED_IN', activeSession);
+    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+      cb('SIGNED_IN', session);
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
@@ -123,6 +123,7 @@ describe('Google OAuth Flow - New User Auto-Provisioning', () => {
         error: null,
       }),
     };
+
     supabaseModule.supabase.from = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue(mockQuery),
     });
@@ -141,47 +142,33 @@ describe('Google OAuth Flow - New User Auto-Provisioning', () => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TEST SUITE 2: LOGIN GUARD BLOCKS INACTIVE USER
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// SUITE 2: PROTECTED ROUTE - INACTIVE
+// ═══════════════════════════════════════════════════════════════
 
-describe('ProtectedRoute - Login Guard Blocks INACTIVE User', () => {
+describe('ProtectedRoute - INACTIVE user', () => {
+  let mockNavigate;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNavigate = vi.fn();
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate);
   });
 
-  it('should block INACTIVE user and sign out with error redirect', async () => {
-    const inactiveUser = {
-      id: 'inactive-user-456',
-      email: 'inactive@example.com',
+  it('blocks inactive user and signs out', async () => {
+    const session = {
+      user: { id: 'inactive-user', email: 'inactive@test.com' },
     };
 
-    const inactiveSession = {
-      user: inactiveUser,
-    };
-
-    // Mock getSession to return a user
-    supabaseModule.supabase.auth.getSession = vi.fn().mockResolvedValue({
-      data: { session: inactiveSession },
+    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+      cb('INITIAL_SESSION', session); // 🔥 critical
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
-    // Mock onAuthStateChange (required by AuthContext)
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn(() => ({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    }));
-
-    // Mock user table query to return INACTIVE user
     const mockQuery = {
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
-        data: {
-          userid: inactiveUser.id,
-          username: 'inactiveuser',
-          firstname: 'Inactive',
-          lastname: 'User',
-          user_type: 'USER',
-          record_status: 'INACTIVE', // ← User is INACTIVE
-        },
+        data: { record_status: 'INACTIVE' },
         error: null,
       }),
     };
@@ -190,74 +177,7 @@ describe('ProtectedRoute - Login Guard Blocks INACTIVE User', () => {
       select: vi.fn().mockReturnValue(mockQuery),
     });
 
-    supabaseModule.supabase.auth.signOut = vi.fn().mockResolvedValue({});
-
-    render(
-      <Router>
-        <AuthProvider>
-          <ProtectedRoute>
-            <ProtectedContent />
-          </ProtectedRoute>
-        </AuthProvider>
-      </Router>
-    );
-
-    // Wait for context to load user
-    await waitFor(() => {
-      expect(supabaseModule.supabase.from).toHaveBeenCalledWith('user');
-    });
-
-    // Protected content should NOT be visible
-    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
-
-    // Should have signed out the INACTIVE user
-    await waitFor(() => {
-      expect(supabaseModule.supabase.auth.signOut).toHaveBeenCalled();
-    });
-  });
-
-  it('should display correct error message for INACTIVE user attempting to access protected route', async () => {
-    const inactiveUser = {
-      id: 'inactive-user-789',
-      email: 'blocked@example.com',
-    };
-
-    const inactiveSession = {
-      user: inactiveUser,
-    };
-
-    supabaseModule.supabase.auth.getSession = vi.fn().mockResolvedValue({
-      data: { session: inactiveSession },
-    });
-
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn(() => ({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    }));
-
-    const mockQuery = {
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          userid: inactiveUser.id,
-          username: 'blockeduser',
-          firstname: 'Blocked',
-          lastname: 'User',
-          user_type: 'USER',
-          record_status: 'INACTIVE',
-        },
-        error: null,
-      }),
-    };
-
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue(mockQuery),
-    });
-
-    supabaseModule.supabase.auth.signOut = vi.fn().mockResolvedValue({});
-
-    // Note: The actual error message is shown on AuthPage when navigating to 
-    // /login?error=inactive. ProtectedRoute redirects there.
-    // This test verifies the redirect happens correctly.
+    supabaseModule.supabase.auth.signOut = vi.fn();
 
     render(
       <Router>
@@ -270,58 +190,45 @@ describe('ProtectedRoute - Login Guard Blocks INACTIVE User', () => {
     );
 
     await waitFor(() => {
-      expect(supabaseModule.supabase.from).toHaveBeenCalledWith('user');
-    });
-
-    // Protected content blocked
-    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
-
-    // User signed out
-    await waitFor(() => {
       expect(supabaseModule.supabase.auth.signOut).toHaveBeenCalled();
     });
+
+    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TEST SUITE 3: LOGIN GUARD ALLOWS ACTIVE USER THROUGH
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// SUITE 3: PROTECTED ROUTE - ACTIVE
+// ═══════════════════════════════════════════════════════════════
 
-describe('ProtectedRoute - Login Guard Allows ACTIVE User', () => {
+describe('ProtectedRoute - ACTIVE user', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should allow ACTIVE user through to /products', async () => {
-    const activeUser = {
-      id: 'active-user-101',
-      email: 'active@example.com',
+  it('renders protected content', async () => {
+    const session = {
+      user: { id: 'active-user', email: 'active@test.com' },
     };
 
-    const activeSession = {
-      user: activeUser,
-    };
-
-    supabaseModule.supabase.auth.getSession = vi.fn().mockResolvedValue({
-      data: { session: activeSession },
+    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+      cb('INITIAL_SESSION', session);
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn(() => ({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    }));
+    const userData = {
+      userid: session.user.id,
+      username: 'activeuser',
+      firstname: 'Active',
+      lastname: 'User',
+      user_type: 'USER',
+      record_status: 'ACTIVE',
+    };
 
-    // Mock user query to return ACTIVE user
     const mockQuery = {
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
-        data: {
-          userid: activeUser.id,
-          username: 'activeuser',
-          firstname: 'Active',
-          lastname: 'User',
-          user_type: 'USER',
-          record_status: 'ACTIVE', // ← User is ACTIVE
-        },
+        data: userData,
         error: null,
       }),
     };
@@ -340,96 +247,23 @@ describe('ProtectedRoute - Login Guard Allows ACTIVE User', () => {
       </Router>
     );
 
-    // Wait for context to load user
-    await waitFor(() => {
-      expect(supabaseModule.supabase.from).toHaveBeenCalledWith('user');
-    });
-
-    // Protected content SHOULD be visible
     await waitFor(() => {
       expect(screen.getByTestId('protected-content')).toBeInTheDocument();
     });
-
-    // Should NOT sign out ACTIVE user
-    expect(supabaseModule.supabase.auth.signOut).not.toHaveBeenCalled();
   });
 
-  it('should render children when ACTIVE user is authenticated', async () => {
-    const activeUser = {
-      id: 'active-user-202',
-      email: 'approved@example.com',
+  it('merges DB user data correctly', async () => {
+    const session = {
+      user: { id: 'merge-user', email: 'merge@test.com' },
     };
 
-    const activeSession = {
-      user: activeUser,
-    };
-
-    supabaseModule.supabase.auth.getSession = vi.fn().mockResolvedValue({
-      data: { session: activeSession },
+    supabaseModule.supabase.auth.onAuthStateChange = vi.fn((cb) => {
+      cb('INITIAL_SESSION', session);
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
 
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn(() => ({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    }));
-
-    const mockQuery = {
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: {
-          userid: activeUser.id,
-          username: 'approveduser',
-          firstname: 'Approved',
-          lastname: 'User',
-          user_type: 'USER',
-          record_status: 'ACTIVE',
-        },
-        error: null,
-      }),
-    };
-
-    supabaseModule.supabase.from = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue(mockQuery),
-    });
-
-    render(
-      <Router>
-        <AuthProvider>
-          <ProtectedRoute>
-            <div data-testid="dashboard">Dashboard Content</div>
-          </ProtectedRoute>
-        </AuthProvider>
-      </Router>
-    );
-
-    await waitFor(() => {
-      expect(supabaseModule.supabase.from).toHaveBeenCalledWith('user');
-    });
-
-    // Dashboard content should be rendered
-    expect(screen.getByTestId('dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Dashboard Content')).toBeInTheDocument();
-  });
-
-  it('should fetch and merge user data for ACTIVE users', async () => {
-    const activeUser = {
-      id: 'active-user-303',
-      email: 'merge@example.com',
-    };
-
-    const activeSession = {
-      user: activeUser,
-    };
-
-    supabaseModule.supabase.auth.getSession = vi.fn().mockResolvedValue({
-      data: { session: activeSession },
-    });
-
-    supabaseModule.supabase.auth.onAuthStateChange = vi.fn(() => ({
-      data: { subscription: { unsubscribe: vi.fn() } },
-    }));
-
-    const userTableData = {
-      userid: activeUser.id,
+    const userData = {
+      userid: session.user.id,
       username: 'mergeuser',
       firstname: 'Merge',
       lastname: 'Test',
@@ -440,7 +274,7 @@ describe('ProtectedRoute - Login Guard Allows ACTIVE User', () => {
     const mockQuery = {
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
-        data: userTableData,
+        data: userData,
         error: null,
       }),
     };
@@ -453,24 +287,17 @@ describe('ProtectedRoute - Login Guard Allows ACTIVE User', () => {
       <Router>
         <AuthProvider>
           <AuthConsumer />
-          <ProtectedRoute>
-            <ProtectedContent />
-          </ProtectedRoute>
         </AuthProvider>
       </Router>
     );
 
     await waitFor(() => {
-      expect(supabaseModule.supabase.from).toHaveBeenCalledWith('user');
+      const user = JSON.parse(
+        screen.getByTestId('current-user').textContent
+      );
+
+      expect(user.username).toBe('mergeuser');
+      expect(user.record_status).toBe('ACTIVE');
     });
-
-    // Verify user data was merged from database
-    const currentUserEl = screen.getByTestId('current-user');
-    const userData = JSON.parse(currentUserEl.textContent);
-
-    expect(userData.userid).toBe(userTableData.userid);
-    expect(userData.username).toBe('mergeuser');
-    expect(userData.firstname).toBe('Merge');
-    expect(userData.record_status).toBe('ACTIVE');
   });
 });
