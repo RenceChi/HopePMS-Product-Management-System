@@ -85,22 +85,6 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
       {/* ── Spacer ── */}
       <div className="flex-1" />
 
-      {/* ── Notification Bell ── */}
-      <button
-        className="w-9 h-9 rounded-[9px] border-none bg-transparent cursor-pointer flex items-center justify-center relative shrink-0 transition-all"
-        style={{ color: 'rgba(246,252,223,0.6)' }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(133,159,61,0.2)'; e.currentTarget.style.color = '#F6FCDF'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(246,252,223,0.6)'; }}
-      >
-        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-        </svg>
-        <span
-          className="absolute top-1.75 right-1.75 w-1.75 h-1.75 rounded-full border-[1.5px]"
-          style={{ background: '#859F3D', borderColor: '#31511E' }}
-        />
-      </button>
 
       {/* ── Avatar + Dropdown ── */}
       <div className="relative shrink-0" ref={dropRef}>
@@ -143,19 +127,7 @@ export default function Navbar({ user, sidebarOpen, onMenuToggle }) {
               <div className="text-[10px] mt-0.5 truncate" style={{ color: 'rgba(26,26,25,0.4)' }}>{user?.email}</div>
             </div>
 
-            {[
-              { label: 'My Profile', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/> },
-              { label: 'Settings',   icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></> },
-            ].map(item => (
-              <button
-                key={item.label}
-                className="w-full px-4 py-2.75 flex items-center gap-2.5 text-[13px] text-[#1A1A19] bg-none border-none cursor-pointer text-left transition-colors hover:bg-[rgba(133,159,61,0.08)]"
-              >
-                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
-                {item.label}
-              </button>
-            ))}
-
+          
             <div className="h-px" style={{ background: 'rgba(133,159,61,0.1)' }} />
 
             <button
