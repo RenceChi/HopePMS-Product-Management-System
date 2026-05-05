@@ -10,7 +10,7 @@ This project is built using React with Vite as the build tool, providing a moder
 - **M1 - Project Lead/Scrum Master:** Clark Lawrence Ching
 - **M2 - Frontend Developer (UI/UX):** Precy S. Baguio
 - **M3 - Backend/DB Engineer:** Ronne Rae A. Mayuga
-- **M4 - Rights & Authentication Specialists:** Jonathan D. Bibay & Patrick Ace Galima
+- **M4 - Rights & Authentication Specialists:** Jonathan D. Bibay
 - **M5 - QA / Documentation Specialist:** Zyrus C. Velasco 
 
 ## Features
