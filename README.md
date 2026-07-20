@@ -1,4 +1,4 @@
-# Hope, Inc. Product Management System (HopePMS)
+<img width="1875" height="956" alt="image" src="https://github.com/user-attachments/assets/96264b04-1242-4a52-a452-c623755a029b" /># Hope, Inc. Product Management System (HopePMS)
 
 ## Overview
 HopePMS is a comprehensive product management system designed for Hope, Inc. to streamline product lifecycle management, from ideation to launch and beyond. The system is a web-based application where authorized users manage products and price history from the HopeDB database. All access is dynamically gated by the Rights Management schema.
@@ -106,4 +106,14 @@ HopePMS-Product-Management-System
 ```
 
 ## Screenshots
-[To be updated...]
+Authentication:
+<img width="1873" height="957" alt="image" src="https://github.com/user-attachments/assets/750843f4-88bb-473c-9dd5-f57e44cc412e" />
+<img width="1874" height="957" alt="image" src="https://github.com/user-attachments/assets/93baed4d-a066-4025-9ef3-a0ea50d8681b" />
+
+Admin's View: 
+<img width="1875" height="956" alt="image" src="https://github.com/user-attachments/assets/de03a4b9-3654-4bd3-bbbb-50e0177c8aa1" />
+
+User's View: 
+<img width="1874" height="961" alt="image" src="https://github.com/user-attachments/assets/eba5b26e-3fe5-4b64-85d7-d983efe8fe07" />
+
+
